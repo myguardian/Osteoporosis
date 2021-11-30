@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from pathlib import Path
+import sys
 
 # Create Data frame Variable
 df = []
@@ -13,7 +14,8 @@ numerical_col = ['PatientAge',
                  'bmdtest_tscore_fn']
 
 # 16 Columns are nominal and none bone related
-nominal_col = ['parentbreak',
+nominal_col = ['PatientGender',
+               'parentbreak',
                'arthritis',
                'cancer',
                'ptunsteady',
@@ -35,7 +37,6 @@ nominal_col_bone = ['hip',
                     'ankle',
                     'clavicle',
                     'elbow',
-
                     'femur',
                     'spine',
                     'wrist',
@@ -62,23 +63,28 @@ def check_null():
 # __________________________________________________________
 
 # Converting Values into Metric
-def height_to_metric(height, measure):
-    if measure == 2:
-        return height * 2.54
-    elif measure == 1:
-        return height
-    else:
-        return None
+def height_to_metric(idx, height, measure):
+    try:
+        if measure == 2:
+            return height * 2.54
+        elif measure == 1:
+            return height
+        else:
+            return None
+    except:
+        print(f'Unable to convert height to metric for patient id = {idx}')
 
 
-
-def weight_to_metric(weight, measure):
-    if measure == 2:
-        return weight * 0.45359237
-    elif measure == 1:
-        return weight
-    else:
-        return None
+def weight_to_metric(idx, weight, measure):
+    try:
+        if measure == 2:
+            return weight * 0.45359237
+        elif measure == 1:
+            return weight
+        else:
+            return None
+    except:
+        print(f'Unable to convert weight to metric for patient id = {idx}')
 
 
 # __________________________________________________________
@@ -111,43 +117,60 @@ def remove_duplicates_with_id():
 # __________________________________________________________
 
 # Dealing with missing data
-
 def remove_all_rows_with_null_columns():
-    df.dropna(axis=0, how='all', inplace=True)
+    try:
+        df.dropna(axis=0, how='all', inplace=True)
+    except Exception as e:
+        print(e)
+
 
 
 def fill_numerical_with_mean():
     for column in numerical_col:
-        df[column].fillna(df[column].mean(), inplace=True)
+        try:
+            df[column].fillna(df[column].mean(), inplace=True)
+        except Exception as e:
+            print(e)
 
 
 def fill_numerical_with_median():
     for column in numerical_col:
-        df[column].fillna(df[column].median(), inplace=True)
+        try:
+            df[column].fillna(df[column].median(), inplace=True)
+        except Exception as e:
+            print(e)
 
 
 # For none bone data
 def fill_nominal_with_mode():
     for column in nominal_col:
-        df[column].fillna(df[column].mode()[0], inplace=True)
+        try:
+            df[column].fillna(df[column].mode()[0], inplace=True)
+        except Exception as e:
+            print(e)
 
 
 # Best to use this function
 def fill_nominal_with_zero():
     for column in nominal_col:
-        df[column].fillna(0, inplace=True)
+        try:
+            df[column].fillna(0, inplace=True)
+        except Exception as e:
+            print(e)
 
 
 # For bone data CALL THIS FUNCTION AT THE END of filling all the other columns
 def fill_nominal_bone_with_zero():
     for column in nominal_col_bone:
-        df[column].fillna(0, inplace=True)
+        try:
+            df[column].fillna(0, inplace=True)
+        except Exception as e:
+            print(e)
 
 
 if __name__ == "__main__":
 
     try:
-        import sys
 
         file_name = sys.argv[1]  # prints python_script.py
         print("Loading Data.")
@@ -159,15 +182,16 @@ if __name__ == "__main__":
         quit()
 
     try:
-        print("Converting Data to metric.")
+        print('Converting Height to Metric')
         df['bmdtest_height'] = [
-            height_to_metric(df.loc[idx, 'bmdtest_height'],
+            height_to_metric(df.loc[idx, 'PatientId'], df.loc[idx, 'bmdtest_height'],
                              df.loc[idx, 'bmdtest_height_units'])
             for idx
             in range(len(df))]
 
+        print('Converting Weight to Metric')
         df['bmdtest_weight'] = [
-            weight_to_metric(df.loc[idx, 'bmdtest_weight'],
+            weight_to_metric(df.loc[idx, 'PatientId'], df.loc[idx, 'bmdtest_weight'],
                              df.loc[idx, 'bmdtest_weight_units'])
             for idx
             in range(len(df))]
@@ -177,8 +201,8 @@ if __name__ == "__main__":
 
     try:
         print("Counting and removing duplicates.")
-        #count_duplicates()
-        #remove_duplicates_with_no_id()
+        # count_duplicates()
+        # remove_duplicates_with_no_id()
         remove_duplicates_with_id()
 
     except:
