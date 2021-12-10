@@ -1,11 +1,16 @@
+import logging
+
 import pandas as pd
 import numpy as np
-import seaborn as sns
 from pathlib import Path
 import sys
 
+logging.basicConfig(level=logging.INFO)
+
 # Create Data frame Variable
 df = []
+
+# Load the different variables we want to use
 
 # 4 Columns are numerical
 numerical_col = ['PatientAge',
@@ -49,19 +54,6 @@ ordinal_col = []
 
 # __________________________________________________________
 
-# Check if the data frame has any empty columns/ rows
-def check_null():
-    print("Count how many are empty:")
-    print(df.isnull().count())
-    print("\n------------------\n")
-
-    print("Are any empty:")
-    print(df.isna().any())
-    print("\n------------------\n")
-
-
-# __________________________________________________________
-
 # Converting Values into Metric
 def height_to_metric(idx, height, measure):
     try:
@@ -70,11 +62,14 @@ def height_to_metric(idx, height, measure):
         elif measure == 1:
             return height
         else:
+            logging.error(f'Patient Id = {idx} does not have a Height Unit')
             return None
-    except:
-        print(f'Unable to convert height to metric for patient id = {idx}')
+    except ValueError:
+        logging.error(ValueError)
+        logging.error(f'Unable to convert height to metric for patient id = {idx}')
 
 
+# Converting Values into Metric
 def weight_to_metric(idx, weight, measure):
     try:
         if measure == 2:
@@ -82,36 +77,50 @@ def weight_to_metric(idx, weight, measure):
         elif measure == 1:
             return weight
         else:
+            logging.error(f'Patient Id = {idx} does not have a Weight Unit')
             return None
-    except:
-        print(f'Unable to convert weight to metric for patient id = {idx}')
+    except ValueError:
+        logging.error(ValueError)
+        logging.error(f'Unable to convert weight to metric for patient id = {idx}')
 
 
 # __________________________________________________________
 
 # Understanding duplicates in the data 
 def count_duplicates():
-    # we know that column 'id' is unique, but what if we drop it?
-    df_dedupped = df.drop('PatientId', axis=1).drop_duplicates()
+    try:
+        # we know that column 'id' is unique, but what if we drop it?
+        df_dedupped = df.drop('PatientId', axis=1).drop_duplicates()
 
-    # there were duplicate rows
-    print(df.shape)
-    print(df_dedupped.shape)
+        # there were duplicate rows
+        logging.info(df.shape)
+        logging.info(df_dedupped.shape)
+
+        logging.info(f'{df.shape[0] - df_dedupped.shape[0]} rows were duplicates')
+        logging.info(f'{df.shape[1] - df_dedupped.shape[1]} feature(s) are duplicates\n')
+
+    except ValueError:
+        logging.error(ValueError)
 
 
+# A more general dropping algorithm. This version of dropping is not used.
 def remove_duplicates_with_no_id():
     df.drop_duplicates(subset=None, keep='first', inplace=False, ignore_index=False)
 
 
+# Remove the duplicates using the Patient ID and Baseline ID. ID's are unique, meaning we shouldn't have duplicates
 def remove_duplicates_with_id():
-    df.drop_duplicates(subset=['BaselineId'], inplace=True)
-    df.drop_duplicates(subset=['PatientId'], inplace=True)
-    df.reset_index(drop=True, inplace=True)
+    try:
+        df.drop_duplicates(subset=['BaselineId'], inplace=True)
+        df.drop_duplicates(subset=['PatientId'], inplace=True)
+        df.reset_index(drop=True, inplace=True)
 
-    # Remove the ID's
-    df.drop(['BaselineId'], axis=1)
-    df.drop(['PatientId'], axis=1)
-    df.reset_index(drop=True, inplace=True)
+        # Remove the ID's
+        df.drop(['BaselineId'], axis=1)
+        df.drop(['PatientId'], axis=1)
+        df.reset_index(drop=True, inplace=True)
+    except ValueError:
+        logging.error(ValueError)
 
 
 # __________________________________________________________
@@ -120,25 +129,25 @@ def remove_duplicates_with_id():
 def remove_all_rows_with_null_columns():
     try:
         df.dropna(axis=0, how='all', inplace=True)
-    except Exception as e:
-        print(e)
+    except ValueError:
+        logging.error(ValueError)
 
 
-
+# We are going to use the mean to fill in the values
 def fill_numerical_with_mean():
     for column in numerical_col:
         try:
             df[column].fillna(df[column].mean(), inplace=True)
-        except Exception as e:
-            print(e)
+        except ValueError:
+            logging.error(ValueError)
 
 
 def fill_numerical_with_median():
     for column in numerical_col:
         try:
             df[column].fillna(df[column].median(), inplace=True)
-        except Exception as e:
-            print(e)
+        except ValueError:
+            logging.error(ValueError)
 
 
 # For none bone data
@@ -146,17 +155,17 @@ def fill_nominal_with_mode():
     for column in nominal_col:
         try:
             df[column].fillna(df[column].mode()[0], inplace=True)
-        except Exception as e:
-            print(e)
+        except ValueError:
+            logging.error(ValueError)
 
 
-# Best to use this function
+# We will use this function to fill values that are categorical
 def fill_nominal_with_zero():
     for column in nominal_col:
         try:
             df[column].fillna(0, inplace=True)
-        except Exception as e:
-            print(e)
+        except ValueError:
+            logging.error(ValueError)
 
 
 # For bone data CALL THIS FUNCTION AT THE END of filling all the other columns
@@ -164,105 +173,91 @@ def fill_nominal_bone_with_zero():
     for column in nominal_col_bone:
         try:
             df[column].fillna(0, inplace=True)
-        except Exception as e:
-            print(e)
+        except ValueError:
+            logging.error(ValueError)
 
 
 if __name__ == "__main__":
 
+    # Loading the data
     try:
 
-        file_name = sys.argv[1]  # prints python_script.py
-        print("Loading Data.")
-        print(file_name)
-
+        file_name = sys.argv[1]
+        logging.info(f'Loading Data {file_name}\n')
         df = pd.read_csv(file_name)
-    except:
-        print("Error. Could not read file.")
+
+    except ValueError:
+        logging.error(ValueError)
         quit()
 
+    # Converting values into metric
     try:
-        print('Converting Height to Metric')
+        logging.info('Converting Height to Metric\n')
         df['bmdtest_height'] = [
             height_to_metric(df.loc[idx, 'PatientId'], df.loc[idx, 'bmdtest_height'],
                              df.loc[idx, 'bmdtest_height_units'])
             for idx
             in range(len(df))]
 
-        print('Converting Weight to Metric')
+        logging.info('Converting Weight to Metric\n')
         df['bmdtest_weight'] = [
             weight_to_metric(df.loc[idx, 'PatientId'], df.loc[idx, 'bmdtest_weight'],
                              df.loc[idx, 'bmdtest_weight_units'])
             for idx
             in range(len(df))]
-    except:
-        print("Error. Was unable to convert Imperial Values into Metric.")
+
+    except ValueError:
+        logging.error(ValueError)
         quit()
 
+    # Dealing with Duplicates
     try:
-        print("Counting and removing duplicates.")
-        # count_duplicates()
-        # remove_duplicates_with_no_id()
+        logging.info("Counting and removing duplicates.\n")
+        count_duplicates()
         remove_duplicates_with_id()
 
-    except:
-        print("Error. Was unable to drop duplicates.")
+    except ValueError:
+        logging.error(ValueError)
         quit()
 
+    # Selecting all features required for the model building process
     try:
-        print("Selecting features from Data.")
-        df = df[['PatientAge',
-                 'PatientGender',
-                 'bmdtest_height',
-                 'bmdtest_weight',
-                 'parentbreak',
-                 'arthritis',
-                 'cancer',
-                 'ptunsteady',
-                 'whereliv',
-                 'education',
-                 'diabetes',
-                 'heartdisease',
-                 'respdisease',
-                 'alcohol',
-                 'howbreak',
-                 'hip',
-                 'ankle',
-                 'clavicle',
-                 'elbow',
-                 'femur',
-                 'spine',
-                 'wrist',
-                 'shoulder',
-                 'tibfib',
-                 'wasfractdue2fall',
-                 'ptfall',
-                 'fxworried',
-                 'notworking',
-                 'marital',
-                 'bmdtest_tscore_fn']]
+        logging.info("Selecting features from Data\n")
+        all_arrays = np.concatenate((numerical_col, nominal_col, nominal_col_bone, ordinal_col))
+        df = df[all_arrays]
 
-    except:
-        print("Error. Was unable to filter specific features from Dataframe")
+    except ValueError:
+        logging.error(ValueError)
         quit()
 
+    # Imputing values into missing cells
     try:
-        print("Imputing Data into missing Columns.")
+        logging.info("Imputing Data into missing Columns\n")
+
         fill_numerical_with_mean()
         fill_nominal_with_mode()
         fill_nominal_bone_with_zero()
 
-    except:
-        print("Error. Was unable to perform data imputation.")
+    except ValueError:
+        logging.error(ValueError)
         quit()
 
+    # Count how many missing cells
     try:
-        print("Saving Data to CSV file.\n")
+        logging.info(f"Count total NaN at each column in a DataFrame\n{df.isnull().sum()}")
+    except ValueError:
+        logging.error(ValueError)
+
+    # Saving data to the CSV File
+    try:
+        logging.info('Saving Data to CSV file\n')
+
         path = Path("Clean_Data_Main.csv")
         df.replace(r'\s+', np.nan, regex=True)
         df.to_csv(path, index=False)
-        print("Data saved to " + str(path))
 
-    except:
-        print("Error. Unable to save data to a file.")
+        logging.info(f'Data saved to {path}\n')
+
+    except ValueError:
+        logging.error(ValueError)
         quit()
