@@ -18,8 +18,10 @@ numerical_col = ['PatientAge',
                  'bmdtest_weight',
                  'bmdtest_tscore_fn']
 
+nominal_col_gender = ['PatientGender']
+
 # 16 Columns are nominal and none bone related
-nominal_col = ['PatientGender',
+nominal_col = [
                'parentbreak',
                'arthritis',
                'cancer',
@@ -159,6 +161,15 @@ def fill_nominal_with_mode():
             logging.error(ValueError)
 
 
+# Fill gender with the mode
+def fill_nominal_gender_with_mode():
+    for column in nominal_col_gender:
+        try:
+            df[column].fillna(df[column].mode()[0], inplace=True)
+        except ValueError:
+            logging.error(ValueError)
+
+
 # We will use this function to fill values that are categorical
 def fill_nominal_with_zero():
     for column in nominal_col:
@@ -223,7 +234,7 @@ if __name__ == "__main__":
     # Selecting all features required for the model building process
     try:
         logging.info("Selecting features from Data\n")
-        all_arrays = np.concatenate((numerical_col, nominal_col, nominal_col_bone, ordinal_col))
+        all_arrays = np.concatenate((numerical_col, nominal_col_gender, nominal_col, nominal_col_bone, ordinal_col))
         df = df[all_arrays]
 
     except ValueError:
@@ -235,6 +246,7 @@ if __name__ == "__main__":
         logging.info("Imputing Data into missing Columns\n")
 
         fill_numerical_with_mean()
+        fill_nominal_gender_with_mode()
         fill_nominal_with_mode()
         fill_nominal_bone_with_zero()
 
