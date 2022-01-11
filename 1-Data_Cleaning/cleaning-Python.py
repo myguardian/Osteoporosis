@@ -61,37 +61,40 @@ ordinal_col = []
 def data_to_metric(idx, height_value, weight_value, height_unit=None, weight_unit=None):
     try:
 
+        # Create variables to hold the values
         heightCm = 0
         weightKg = 0
         metric = None
 
+        # Perform operation if the height unit exists
         if height_unit is not None:
 
-            # 2 = inches
+            # Convert the height from INCHES to CM  (NOTE: Inches = 2 and CM = 1)
             if height_unit != "" and height_unit == 2:
                 heightIn = height_value
                 if heightIn is not None:
                     heightCm = heightIn * 2.54
-
             else:
                 heightCm = height_value
 
         elif 1 < height_value < 2.2:
-            # Height too low to be anything but m -> convert to cm
+            # Convert METERS to CM
             heightCm = height_value * 100
 
         elif 50 < height_value < 84:
-            # Height value is too high to be m for feet and too low to be cm, assume inches -> convert to cm
+            # Height value is too high to be METERS or FEET and too low to be CM.
+            # Assume the height is INCHES and convert to CM
             heightIn = height_value
             heightCm = heightIn * 2.54
             metric = False  # we use this flag later with weight...
 
         elif height_value > 125:
+            # The height is probably in CM
             heightCm = height_value
 
-        # Perform weight conversions
+        # Perform operation if the weight unit exists
         if weight_unit is not None:
-            # 2 = lbs
+            # Convert the weight from POUNDS to KILOGRAMS (NOTE: LBS = 2 and KG = 1)
             if weight_unit is not None and weight_unit == 2:
                 weightLb = weight_value
                 if weightLb is not None:
@@ -107,13 +110,16 @@ def data_to_metric(idx, height_value, weight_value, height_unit=None, weight_uni
             weightKg = weight_value
 
         else:
+            # Convert data from Lbs to KGs
+
             weightLb = weight_value
             if weightLb is not None:
                 weightKg = weightLb.Value * 0.45359237
 
         return heightCm, weightKg
-    except ValueError as e:
-        logging.error(e)
+
+    except ValueError as err:
+        logging.error(err)
         logging.error(f'Unable to convert height to metric for patient id = {idx}')
 
 
@@ -297,7 +303,7 @@ if __name__ == "__main__":
     try:
         logging.info('Saving Data to CSV file\n')
 
-        path = Path("Clean_Data_Main.csv")
+        path = Path("Clean_Data_Main_test.csv")
         df.replace(r'\s+', np.nan, regex=True)
         df.to_csv(path, index=False)
 
