@@ -18,66 +18,51 @@ numerical_col = ['PatientAge',
                  'bmdtest_weight',
                  'bmdtest_tscore_fn']
 
-nominal_col_gender = ['PatientGender']
-
-# 16 Columns are nominal and none bone related
+# We will fill null cells with mode
 nominal_col = [
+    'PatientGender',
     'parentbreak',
-    'arthritis',
-    'cancer',
     'ptunsteady',
     'whereliv',
     'education',
-    'diabetes',
-    'heartdisease',
-    'respdisease',
     'alcohol',
-    'howbreak',
     'wasfractdue2fall',
     'ptfall',
     'fxworried',
     'notworking',
     'marital']
 
-# 9 Columns are bone related and nominal
-nominal_col_bone = ['hip',
-                    'ankle',
-                    'clavicle',
-                    'elbow',
-                    'femur',
-                    'spine',
-                    'wrist',
-                    'shoulder',
-                    'tibfib', ]
-
-# No columns in the data are ordinal
-ordinal_col = []
+# We will fill null cells with 0 for these columns
+special_nominal = ['arthritis',
+                   'cancer',
+                   'diabetes',
+                   'heartdisease',
+                   'respdisease',
+                   'howbreak',
+                   'hip',
+                   'ankle',
+                   'clavicle',
+                   'elbow',
+                   'femur',
+                   'spine',
+                   'wrist',
+                   'shoulder',
+                   'tibfib', ]
 
 
 # __________________________________________________________
 
 
 # Converting Values into Metric
-def data_to_metric(idx, height_value, weight_value, height_unit=None, weight_unit=None):
+def data_to_metric(idx, height_value, weight_value):
     try:
 
         # Create variables to hold the values
         heightCm = 0
         weightKg = 0
-        metric = None
+        metric = True
 
-        # Perform operation if the height unit exists
-        if height_unit is not None:
-
-            # Convert the height from INCHES to CM  (NOTE: Inches = 2 and CM = 1)
-            if height_unit != "" and height_unit == 2:
-                heightIn = height_value
-                if heightIn is not None:
-                    heightCm = heightIn * 2.54
-            else:
-                heightCm = height_value
-
-        elif 1 < height_value < 2.2:
+        if 1 < height_value < 2.2:
             # Convert METERS to CM
             heightCm = height_value * 100
 
@@ -91,19 +76,9 @@ def data_to_metric(idx, height_value, weight_value, height_unit=None, weight_uni
         elif height_value > 125:
             # The height is probably in CM
             heightCm = height_value
+            metric = True
 
-        # Perform operation if the weight unit exists
-        if weight_unit is not None:
-            # Convert the weight from POUNDS to KILOGRAMS (NOTE: LBS = 2 and KG = 1)
-            if weight_unit is not None and weight_unit == 2:
-                weightLb = weight_value
-                if weightLb is not None:
-                    weightKg = weightLb.Value * 0.45359237
-
-            else:
-                weightKg = weight_value
-
-        elif metric:
+        if metric:
             # The assumption is that if units are missing, they still used the same units type (metric vs imperial)
             # It's impossible to do the same inference as with height because the "reasonable value" ranges are less
             # distinct.
@@ -111,16 +86,20 @@ def data_to_metric(idx, height_value, weight_value, height_unit=None, weight_uni
 
         else:
             # Convert data from Lbs to KGs
-
             weightLb = weight_value
             if weightLb is not None:
-                weightKg = weightLb.Value * 0.45359237
+                weightKg = weightLb * 0.45359237
 
         return heightCm, weightKg
 
     except ValueError as err:
         logging.error(err)
         logging.error(f'Unable to convert height to metric for patient id = {idx}')
+
+
+def fill_zeros_in_height_weight_with_mean():
+    df['bmdtest_height'].replace(0, df['bmdtest_height'].mean(), inplace=True)
+    df['bmdtest_weight'].replace(0, df['bmdtest_weight'].mean(), inplace=True)
 
 
 # __________________________________________________________
@@ -138,14 +117,8 @@ def count_duplicates():
         logging.info(f'{df.shape[0] - df_dedupped.shape[0]} rows were duplicates')
         logging.info(f'{df.shape[1] - df_dedupped.shape[1]} feature(s) are duplicates\n')
 
-
-    except ValueError as e:
-        logging.error(e)
-
-
-# A more general dropping algorithm. This version of dropping is not used.
-def remove_duplicates_with_no_id():
-    df.drop_duplicates(subset=None, keep='first', inplace=False, ignore_index=False)
+    except ValueError as er:
+        logging.error(er)
 
 
 # Remove the duplicates using the Patient ID and Baseline ID. ID's are unique, meaning we shouldn't have duplicates
@@ -170,7 +143,7 @@ def remove_all_rows_with_null_columns():
     try:
         df.dropna(axis=0, how='all', inplace=True)
     except ValueError as er:
-        logging.error(e)
+        logging.error(er)
 
 
 # We are going to use the mean to fill in the values
@@ -179,58 +152,31 @@ def fill_numerical_with_mean():
         try:
             df[column].fillna(df[column].mean(), inplace=True)
         except ValueError as er:
-            logging.error(e)
+            logging.error(er)
 
 
-def fill_numerical_with_median():
-    for column in numerical_col:
-        try:
-            df[column].fillna(df[column].median(), inplace=True)
-        except ValueError as er:
-            logging.error(e)
-
-
-# For none bone data
+# Fill non-special columns with mode
 def fill_nominal_with_mode():
     for column in nominal_col:
         try:
             df[column].fillna(df[column].mode()[0], inplace=True)
         except ValueError as er:
-            logging.error(e)
+            logging.error(er)
 
 
-# Fill gender with the mode
-def fill_nominal_gender_with_mode():
-    for column in nominal_col_gender:
-        try:
-            df[column].fillna(df[column].mode()[0], inplace=True)
-        except ValueError as er:
-            logging.error(e)
-
-
-# We will use this function to fill values that are categorical
-def fill_nominal_with_zero():
-    for column in nominal_col:
+# Fill special columns with 0
+def fill_special_nominal_with_zero():
+    for column in special_nominal:
         try:
             df[column].fillna(0, inplace=True)
         except ValueError as er:
-            logging.error(e)
-
-
-# For bone data CALL THIS FUNCTION AT THE END of filling all the other columns
-def fill_nominal_bone_with_zero():
-    for column in nominal_col_bone:
-        try:
-            df[column].fillna(0, inplace=True)
-        except ValueError as er:
-            logging.error(e)
+            logging.error(er)
 
 
 if __name__ == "__main__":
 
     # Loading the data
     try:
-
         file_name = sys.argv[1]
         logging.info(f'Loading Data {file_name}\n')
         df = pd.read_csv(file_name)
@@ -239,27 +185,7 @@ if __name__ == "__main__":
         logging.error(e)
         quit()
 
-    # Converting values into metric
-    try:
-
-        logging.info('Converting Height and Weight to Metric\n')
-        converted_data_tuple = [
-            data_to_metric(df.loc[idx, 'PatientId'], df.loc[idx, 'bmdtest_height'], df.loc[idx, 'bmdtest_weight'],
-                           df.loc[idx, 'bmdtest_height_units'], df.loc[idx, 'bmdtest_weight_units'])
-            for idx
-            in range(len(df))]
-
-        # Get heights from tuple
-        df['bmdtest_height'] = [x[0] for x in converted_data_tuple]
-
-        # Get weights from tuple
-        df['bmdtest_weight'] = [x[1] for x in converted_data_tuple]
-
-    except ValueError as e:
-
-        logging.error(e)
-        quit()
-
+    # ----------------------------------------------------------------------
     # Dealing with Duplicates
     try:
         logging.info("Counting and removing duplicates.\n")
@@ -270,40 +196,65 @@ if __name__ == "__main__":
         logging.error(e)
         quit()
 
+    # ----------------------------------------------------------------------
+    # Converting values into metric
+    try:
+
+        logging.info('Converting Height and Weight to Metric\n')
+        converted_data_tuple = [
+            data_to_metric(df.loc[idx, 'PatientId'], df.loc[idx, 'bmdtest_height'], df.loc[idx, 'bmdtest_weight'])
+            for idx
+            in range(len(df))]
+
+        # Get heights from tuple
+        df['bmdtest_height'] = [x[0] for x in converted_data_tuple]
+
+        # Get weights from tuple
+        df['bmdtest_weight'] = [x[1] for x in converted_data_tuple]
+
+        fill_zeros_in_height_weight_with_mean()
+    except ValueError as e:
+
+        logging.error(e)
+        quit()
+
+    # ----------------------------------------------------------------------
     # Selecting all features required for the model building process
     try:
         logging.info("Selecting features from Data\n")
-        all_arrays = np.concatenate((numerical_col, nominal_col_gender, nominal_col, nominal_col_bone, ordinal_col))
+        all_arrays = np.concatenate((numerical_col, nominal_col, special_nominal))
         df = df[all_arrays]
 
     except ValueError as e:
         logging.error(e)
         quit()
 
+    # ----------------------------------------------------------------------
     # Imputing values into missing cells
     try:
         logging.info("Imputing Data into missing Columns\n")
 
         fill_numerical_with_mean()
-        fill_nominal_gender_with_mode()
         fill_nominal_with_mode()
-        fill_nominal_bone_with_zero()
+        fill_special_nominal_with_zero()
 
     except ValueError as e:
         logging.error(e)
         quit()
 
+    # ----------------------------------------------------------------------
     # Count how many missing cells
     try:
         logging.info(f"Count total NaN at each column in a DataFrame\n{df.isnull().sum()}")
     except ValueError:
         logging.error(ValueError)
 
+    # ----------------------------------------------------------------------
     # Saving data to the CSV File
     try:
         logging.info('Saving Data to CSV file\n')
 
-        path = Path("Clean_Data_Main_test.csv")
+        path = Path("Clean_Data_Main.csv")
         df.replace(r'\s+', np.nan, regex=True)
         df.to_csv(path, index=False)
 
