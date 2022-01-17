@@ -87,13 +87,28 @@ def create_box_plot_chart(data_frame, feature):
         logging.error(f'Cannot create box plot for {feature}')
 
 
-def create_histogram_chart(data_frame, feature):
+def create_histogram_chart(data_frame, feature, gender=0):
     try:
         logging.info(f'Creating Histogram for {feature}')
-        data_frame.hist(column=feature, bins=50, grid=False, figsize=(5, 5))
-        plt.title(feature + " Histogram")
-        plt.savefig(f'analysis_results/numerical_{feature}_hist')
-        plt.clf()
+
+        if gender == 0:
+            data_frame.hist(column=feature, bins=50, grid=False, figsize=(5, 5))
+            plt.title(feature + " Histogram")
+            plt.savefig(f'analysis_results/numerical_{feature}_hist')
+            plt.clf()
+
+        elif gender == 1:
+            data_frame.hist(column=feature, bins='auto', grid=False, figsize=(5, 5))
+            plt.title("Female " + feature + " Histogram")
+            plt.savefig(f'analysis_results/numerical_{feature}_hist_female')
+            plt.clf()
+
+        else:
+            data_frame.hist(column=feature, bins='auto', grid=False, figsize=(5, 5))
+            plt.title("Male " + feature + " Histogram")
+            plt.savefig(f'analysis_results/numerical_{feature}_hist_male')
+            plt.clf()
+
     except ValueError as er:
         logging.error(er)
         logging.error(f'Cannot create histogram for {feature}')
@@ -150,6 +165,12 @@ def perform_data_analysis(path):
                 create_box_plot_chart(data, feature)
             elif feature in nominal_col:
                 create_pie_chart(data, feature)
+
+        logging.info(f"Creating Histograms for both genders height and weight.")
+        for gender in range(1, 3):
+            patients = data[data['PatientGender'] == gender]
+            create_histogram_chart(patients, 'bmdtest_height', gender)
+            create_histogram_chart(patients, 'bmdtest_weight', gender)
 
         logging.info('Success, closing program')
     except ValueError as er:
