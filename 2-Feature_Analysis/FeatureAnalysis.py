@@ -92,7 +92,7 @@ def create_histogram_chart(data_frame, feature, gender=0):
         logging.info(f'Creating Histogram for {feature}')
 
         if gender == 0:
-            data_frame.hist(column=feature, bins=50, grid=False, figsize=(5, 5))
+            data_frame.hist(column=feature, bins=40, grid=False, figsize=(5, 5))
             plt.title(feature + " Histogram")
             plt.savefig(f'analysis_results/numerical_{feature}_hist')
             plt.clf()
