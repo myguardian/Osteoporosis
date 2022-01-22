@@ -1,6 +1,8 @@
 import logging
 import sys
 
+# Load it
+import sweetviz as sv
 import numpy as np
 import statistics
 from collections import Counter
@@ -146,6 +148,29 @@ def perform_data_analysis(path):
     except ValueError as er:
         logging.error(er)
         logging.error('Unable to create description data frame')
+
+    try:
+        logging.info(f'Creating feature data frame html graph')
+        analysis = sv.analyze(data)
+        analysis.show_html('analysis_results/osteoporosis.html', open_browser=False)
+
+    except ValueError as er:
+        logging.error(er)
+        logging.error('Error showing feature descriptions')
+
+    try:
+        female_dataframe = data[data['PatientGender'] == 1]
+        male_dataframe = data[data['PatientGender'] == 2]
+
+        analysis_female_gender = sv.analyze(female_dataframe)
+        analysis_female_gender.show_html('analysis_results/osteoporosis_female.html', open_browser=False)
+
+        analysis_male_gender = sv.analyze(male_dataframe)
+        analysis_male_gender.show_html('analysis_results/osteoporosis_male.html', open_browser=False)
+
+    except ValueError as er:
+        logging.error(er)
+        logging.error('Error showing gender descriptions')
 
     try:
         # Create a correlation figure, histogram or pie chart for each image
