@@ -1,17 +1,12 @@
 import logging
-import sys
-
-# Load it
-import sweetviz as sv
-import numpy as np
-import statistics
-from collections import Counter
-import pandas as pd
-from scipy import stats
-import seaborn as sns
-import matplotlib.pyplot as plt
 # import the os module
 import os
+import sys
+
+import matplotlib.pyplot as plt
+import pandas as pd
+# Load it
+import sweetviz as sv
 
 logging.basicConfig(level=logging.INFO)
 
@@ -129,11 +124,7 @@ def create_pie_chart(data_frame, feature):
         logging.error(f'Cannot create pie chart for {feature}')
 
 
-def perform_data_analysis(path):
-    # Load the data from the CSV file and select the features
-    data = pd.read_csv(path)
-    features = list(data.columns.values)
-
+def create_description_from_data_frame(data):
     try:
         # Create a description for each of the features
         logging.info(f'Creating description data frame')
@@ -149,6 +140,8 @@ def perform_data_analysis(path):
         logging.error(er)
         logging.error('Unable to create description data frame')
 
+
+def feature_report(data):
     try:
         logging.info(f'Creating feature data frame html graph')
         analysis = sv.analyze(data)
@@ -156,21 +149,33 @@ def perform_data_analysis(path):
 
     except ValueError as er:
         logging.error(er)
-        logging.error('Error showing feature descriptions')
+        logging.error('Error showing feature report')
 
+
+def gender_report(data):
     try:
-        female_dataframe = data[data['PatientGender'] == 1]
-        male_dataframe = data[data['PatientGender'] == 2]
+        logging.info(f'Creating gender report with html graph')
+        female_data = data[data['PatientGender'] == 1]
+        analysis_female = sv.analyze(female_data)
+        analysis_female.show_html('analysis_results/osteoporosis_female.html', open_browser=False)
 
-        analysis_female_gender = sv.analyze(female_dataframe)
-        analysis_female_gender.show_html('analysis_results/osteoporosis_female.html', open_browser=False)
-
-        analysis_male_gender = sv.analyze(male_dataframe)
-        analysis_male_gender.show_html('analysis_results/osteoporosis_male.html', open_browser=False)
+        male_data = data[data['PatientGender'] == 2]
+        analysis_male = sv.analyze(male_data)
+        analysis_male.show_html('analysis_results/osteoporosis_male.html', open_browser=False)
 
     except ValueError as er:
         logging.error(er)
-        logging.error('Error showing gender descriptions')
+        logging.error('Error showing gender report')
+
+
+def perform_data_analysis(path):
+    # Load the data from the CSV file and select the features
+    data = pd.read_csv(path)
+    features = list(data.columns.values)
+
+    create_description_from_data_frame(data)
+    feature_report(data)
+    gender_report(data)
 
     try:
         # Create a correlation figure, histogram or pie chart for each image
@@ -208,7 +213,6 @@ if __name__ == "__main__":
     try:
         # Get the data from the argument
         file_name = sys.argv[1]
-        # file_name = 'Clean_Data_Main.csv'
         logging.info(f'Loading Data {file_name}\n')
 
         # Create the directory where the CSV files and images are going to be saved
@@ -216,6 +220,7 @@ if __name__ == "__main__":
 
         # Perform the analysis and generate the images
         perform_data_analysis(file_name)
+
     except ValueError as e:
         logging.error(e)
         logging.error('Unable to load the CSV File')
