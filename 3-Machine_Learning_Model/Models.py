@@ -113,7 +113,6 @@ def perform_predictions(top_models):
     logging.info('Saving Results to Model_Results.txt and Predictions to csvs')
     with open('Model_Results.txt', 'w') as result_file:
         for i in range(len(top_models)):
-            predictions[i].to_csv(f"Prediction_Model{i + 1}.csv")
             result_file.write(
                 f'RMSE for Model {i + 1}: \n{top_models[i]}: \n' +
                 f"{check_metric(predictions[i].bmdtest_tscore_fn, predictions[i].Label, 'RMSE')} \n"
@@ -128,17 +127,7 @@ def perform_predictions(top_models):
         csv_files = glob('*.csv')
         shutil.move(os.path.join(current_dir, 'Model_Results.txt'), os.path.join(dst_dir, 'Model_Results.txt'))
 
-        for file in csv_files:
-            if file.__contains__("Prediction_Model1.csv"):
-                shutil.move(
-                    os.path.join(current_dir, file), os.path.join(dst_dir + f"/model_1", file)
-                )
-            elif file.__contains__("Prediction_Model2.csv"):
-                shutil.move(os.path.join(current_dir, file), os.path.join(dst_dir + f"/model_2", file))
-            elif file.__contains__("Prediction_Model3.csv"):
-                shutil.move(os.path.join(current_dir, file), os.path.join(dst_dir + f"/model_3", file))
-
-        print('All Model results and predictions have been moved successfully.')
+        print('Model results have been moved successfully.')
     except Exception as er:
         logging.error(er)
         logging.error("There was an error when moving the files")
@@ -190,8 +179,8 @@ def plot_results(top_models):
 if __name__ == "__main__":
     try:
         # Get the data from the argument
-        # file_name = sys.argv[1]
-        file_name = '../1-Data_Cleaning/Clean_Data_Main.csv'
+        file_name = sys.argv[1]
+        # file_name = '../1-Data_Cleaning/Clean_Data_Main.csv'
         logging.info(f'Loading Data {file_name}\n')
 
         # Create the directory where the CSV files and images are going to be saved
