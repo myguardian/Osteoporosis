@@ -33,7 +33,7 @@ def root_mean_squared_error(y_true, y_pred):
 def create_model(layer1, layer2 , dimensions):
     # create model
     model = Sequential()
-    model.add(Dense(d, input_dim=d, activation='relu'))
+    model.add(Dense(dimensions, input_dim=dimensions, activation='relu'))
     model.add(Dense(layer1, activation='relu'))
     model.add(Dense(layer2, activation='relu'))
     model.add(Dense(1))
@@ -49,7 +49,7 @@ def perform_deep_learning(path):
         # Load the data from the CSV file and select the features
         data = pd.read_csv(path)
         features = list(data.columns.values)
-        features = features.remove('bmdtest_tscore_fn')
+        features.remove('bmdtest_tscore_fn')
         d = len(features)
         
         X = data[features]
