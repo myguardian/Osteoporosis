@@ -61,11 +61,10 @@ def setup_data(path):
 
     # Reduce the amount of columns produced by the types of fractures and
     # consolidate them into two columns, fractured and fracture_type
-    dataset = dataset.melt(id_vars=['PatientId', 'PatientAge', 'PatientGender', 'bmdtest_height', 'bmdtest_weight',
-                                    'ptunsteady', 'parentbreak', 'howbreak', 'arthritis', 'cancer', 'diabetes',
-                                    'heartdisease', 'respdisease', 'alcohol', 'bmdtest_tscore_fn'],
-                           value_vars=['hip', 'ankle', 'clavicle', 'elbow', 'femur', 'spine', 'wrist',
-                                       'shoulder', 'tibfib'],
+    dataset = dataset.melt(id_vars=['PatientId', 'PatientAge', 'PatientGender', 'bmdtest_weight', 'bmdtest_height',
+                                    'parentbreak', 'alcohol', 'arthritis', 'cancer', 'diabetes', 'heartdisease',
+                                    'respdisease','ptunsteady', 'wasfractdue2fall', 'ptfall', 'bmdtest_tscore_fn'],
+                           value_vars=['ankle', 'clavicle', 'elbow', 'femur', 'wrist', 'tibfib'],
                            var_name="fracture_type",
                            value_name='fractured',
                            ignore_index=False)
@@ -84,7 +83,7 @@ def setup_data(path):
 
     # Create the dataset that will be used to train the models
     # and the data that will be used to perform the predictions to test the models
-    data = updated_dataset.sample(frac=0.9, random_state=786)
+    data = updated_dataset.sample(frac=0.8, random_state=786)
     data_unseen = updated_dataset.drop(data.index)
 
     data.reset_index(drop=True, inplace=True)
@@ -110,7 +109,7 @@ def perform_predictions(top_models):
     predictions = [predict_model(i, unseen_data) for i in top_models]
 
     # Write the results to a text file and the predictions to csvs
-    logging.info('Saving Results to Model_Results.txt and Predictions to csvs')
+    logging.info('Saving Results to Model_Results.txt')
     with open('Model_Results.txt', 'w') as result_file:
         for i in range(len(top_models)):
             result_file.write(
@@ -122,9 +121,8 @@ def perform_predictions(top_models):
                 f"{check_metric(predictions[i].bmdtest_tscore_fn, predictions[i].Label, 'R2')} \n"
             )
 
-    # Move the Prediction csvs to their respective model directories
+    # Move the Model Results csvs to the results directory
     try:
-        csv_files = glob('*.csv')
         shutil.move(os.path.join(current_dir, 'Model_Results.txt'), os.path.join(dst_dir, 'Model_Results.txt'))
 
         print('Model results have been moved successfully.')
@@ -190,9 +188,12 @@ if __name__ == "__main__":
         main_data, unseen_data = setup_data(file_name)
 
         if main_data is not None:
-            exp_name = setup(data=main_data, target='bmdtest_tscore_fn', session_id=123, train_size=0.7, fold=10,
-                             categorical_features=['parentbreak', 'alcohol', 'ptunsteady'], silent=True)
-            best_models = compare_models(exclude=['ransac'], sort='RMSE', n_select=3, fold=10)
+            exp_name = setup(data=main_data, target='bmdtest_tscore_fn', session_id=123, train_size=0.8, fold=10,
+                             feature_interaction=True, feature_ratio=True, feature_selection=True,
+                             feature_selection_threshold=0.5, feature_selection_method='boruta',
+                             categorical_features=['parentbreak', 'alcohol'],
+                             normalize=True, normalize_method='minmax', silent=True, html=False)
+            best_models = compare_models(sort='RMSE', n_select=3, fold=10)
 
             # Tune the Models
             tuned_models = [tune_model(i, optimize='RMSE', n_iter=100) for i in best_models]
