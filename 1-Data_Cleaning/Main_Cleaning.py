@@ -7,6 +7,8 @@ import sys
 import os
 import sys
 
+import sweetviz
+
 logging.basicConfig(level=logging.INFO)
 
 # Create Data frame Variable
@@ -36,8 +38,7 @@ nominal_col = [
     'notworking',
     'marital',
 
-
-    'oralster', 'smoke' ]
+    'oralster', 'smoke']
 
 # We will fill null cells with 0 for these columns
 special_nominal = ['arthritis',
@@ -65,6 +66,7 @@ def lbs_to_kg(weight_value):
     if weightLb is not None:
         weightKg = weightLb * 0.45359237
         return weightKg
+
 
 def bmi(height_value, weightKg):
     # add a buffer to each weight to account for overweight individuals
@@ -258,8 +260,6 @@ if __name__ == "__main__":
     except ValueError as e:
         logging.error(e)
         quit()
-
-
 
     try:
         logging.info(f'Creating feature data frame html graph')

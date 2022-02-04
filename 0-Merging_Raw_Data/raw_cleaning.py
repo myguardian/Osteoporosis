@@ -1,10 +1,7 @@
 import logging
-
 import pandas as pd
 import numpy as np
 from pathlib import Path
-import sys
-import os
 import sys
 
 logging.basicConfig(level=logging.INFO)
@@ -36,8 +33,7 @@ nominal_col = [
     'notworking',
     'marital',
 
-
-    'oralster', 'smoke' ]
+    'oralster', 'smoke']
 
 # We will fill null cells with 0 for these columns
 special_nominal = ['arthritis',
@@ -57,14 +53,13 @@ special_nominal = ['arthritis',
                    'tibfib', ]
 
 
-# __________________________________________________________
-
 # function to covert lbs to kg
 def lbs_to_kg(weight_value):
     weightLb = weight_value
     if weightLb is not None:
         weightKg = weightLb * 0.45359237
         return weightKg
+
 
 def bmi(height_value, weightKg):
     # add a buffer to each weight to account for overweight individuals
@@ -196,7 +191,6 @@ def fill_zeros_in_height_weight_with_mean():
     df['bmdtest_weight'].replace(0, df['bmdtest_weight'].mean(), inplace=True)
 
 
-# __________________________________________________________
 
 
 # Remove the duplicates using the Patient ID and Baseline ID. ID's are unique, meaning we shouldn't have duplicates
@@ -259,17 +253,6 @@ if __name__ == "__main__":
         logging.error(e)
         quit()
 
-
-
-    try:
-        logging.info(f'Creating feature data frame html graph')
-        analysis = sweetviz.analyze(df)
-        analysis.show_html('pre_analysis_results/pre_analysis.html', open_browser=False)
-
-    except ValueError as e:
-        logging.error(e)
-        logging.error('Error showing feature report')
-
     # ----------------------------------------------------------------------
     # Dealing with Duplicates
     try:
@@ -318,7 +301,7 @@ if __name__ == "__main__":
     try:
         logging.info('Saving Data to CSV file\n')
 
-        path = Path("Clean_Data_Main.csv")
+        path = Path("merging_results/Clean_Data.csv")
         df.replace(r'\s+', np.nan, regex=True)
         df.to_csv(path, index=False)
 
