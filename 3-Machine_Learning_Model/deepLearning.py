@@ -33,7 +33,7 @@ def root_mean_squared_error(y_true, y_pred):
 def create_model(layer1, layer2 , dimensions):
     # create model
     model = Sequential()
-    model.add(Dense(d, input_dim=d, activation='relu'))
+    model.add(Dense(dimensions, input_dim=dimensions, activation='relu'))
     model.add(Dense(layer1, activation='relu'))
     model.add(Dense(layer2, activation='relu'))
     model.add(Dense(1))
@@ -49,7 +49,7 @@ def perform_deep_learning(path):
         # Load the data from the CSV file and select the features
         data = pd.read_csv(path)
         features = list(data.columns.values)
-        features = features.remove('bmdtest_tscore_fn')
+        features.remove('bmdtest_tscore_fn')
         d = len(features)
         
         X = data[features]
@@ -61,7 +61,9 @@ def perform_deep_learning(path):
         
         models = []
     
-        # create model    
+        # create model   
+        models.append(("Convolutional 30/7/7/1", create_model(7, 7, d)))        
+        models.append(("Convolutional 30/15/15/1", create_model(15, 15, d)))
         models.append(("Convolutional 30/50/50/1", create_model(50, 50, d)))
         models.append(("Convolutional 30/100/100/1", create_model(100, 100, d)))
         models.append(("Convolutional 30/500/500/1", create_model(500, 500, d)))
@@ -80,7 +82,7 @@ def perform_deep_learning(path):
         # evaluate each model in turn
         for name, model in models:   
            
-            model.fit(X_train, y_train, epochs=100, verbose=0, validation_split = 0.2)
+            model.fit(X_train, y_train, epochs=10000, verbose=0, validation_split = 0.2)
             predictions = model.predict(X_test)
             rsme = math.sqrt(metrics.mean_squared_error(y_test, predictions))
 
