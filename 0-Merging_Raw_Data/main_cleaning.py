@@ -174,7 +174,7 @@ def data_to_metric(idx, height_value, weight_value):
             # distinct.
             weightKg = weight_value
 
-            doBmi = False
+            doBmi = True
             if doBmi:
                 weightKg = bmi(height_value, weightKg)
             # check if the weight thats assumed to be kg, is actually lbs (ex 95 kg or 95 lbs)
@@ -258,6 +258,17 @@ if __name__ == "__main__":
     except ValueError as e:
         logging.error(e)
         quit()
+
+
+
+    try:
+        logging.info(f'Creating feature data frame html graph')
+        analysis = sweetviz.analyze(df)
+        analysis.show_html('pre_analysis_results/pre_analysis.html', open_browser=False)
+
+    except ValueError as e:
+        logging.error(e)
+        logging.error('Error showing feature report')
 
     # ----------------------------------------------------------------------
     # Dealing with Duplicates
