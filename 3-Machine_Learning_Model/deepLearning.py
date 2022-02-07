@@ -5,6 +5,7 @@ import math
 import pandas as pd
 import statistics
 import keras
+import matplotlib.pyplot as plt
 from keras import backend as K
 from pandas import read_csv
 from keras.models import Sequential
@@ -61,12 +62,13 @@ def perform_deep_learning(path):
         
         models = []
     
-        # create model   
-        models.append(("Convolutional 30/7/7/1", create_model(7, 7, d)))        
-        models.append(("Convolutional 30/15/15/1", create_model(15, 15, d)))
-        models.append(("Convolutional 30/50/50/1", create_model(50, 50, d)))
-        models.append(("Convolutional 30/100/100/1", create_model(100, 100, d)))
-        models.append(("Convolutional 30/500/500/1", create_model(500, 500, d)))
+        # create model 
+        models.append(("Convolutional_30_2_2_1", create_model(2, 2, d)))            
+        models.append(("Convolutional_30_7_7_1", create_model(7, 7, d)))        
+        models.append(("Convolutional_30_15_15_1", create_model(15, 15, d)))
+        models.append(("Convolutional_30_50_50_1", create_model(50, 50, d)))
+        models.append(("Convolutional_30_100_100_1", create_model(100, 100, d)))
+        models.append(("Convolutional_30_500_500_1", create_model(500, 500, d)))
             
             
         
@@ -91,8 +93,11 @@ def perform_deep_learning(path):
             errorvariance = [(real-predicted)  for (predicted, real) in zip(predictions, y_test)]
             plt.figure()
             plt.title(name + " Error Levels")
-            plt.hist(errorvariance, bins=np.arange(min(errorvariance), max(errorvariance) + 0.1, 0.1))
-            plt.savefig(f'deep_learning_results/{name}_Predictions_VS_Real_Scores')
+            plt.xlabel("real t-scores")
+            plt.ylabel("predicted t-scores")
+            plt.scatter(y_test, predictions)
+            plt.plot([-6,3], [-6, 3], '--')
+            plt.savefig(f'deep_learning_results/{name}_Predictions_VS_Real_Scores.png')
             plt.clf()
             
             logging.info(f'Training %s' % (name))
