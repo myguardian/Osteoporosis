@@ -88,7 +88,12 @@ def perform_deep_learning(path):
 
             f.write('%s: RSME: (%f) -  SI: (%f) \n\n' % (name, rsme, rsme/statistics.mean(y_train)))
             
-            
+            errorvariance = [(real-predicted)  for (predicted, real) in zip(predictions, y_test)]
+            plt.figure()
+            plt.title(name + " Error Levels")
+            plt.hist(errorvariance, bins=np.arange(min(errorvariance), max(errorvariance) + 0.1, 0.1))
+            plt.savefig(f'deep_learning_results/{name}_Predictions_VS_Real_Scores')
+            plt.clf()
             
             logging.info(f'Training %s' % (name))
         f.close()
