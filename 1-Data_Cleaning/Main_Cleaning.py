@@ -4,9 +4,10 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import sys
-import sweetviz
 import os
 import sys
+
+import sweetviz
 
 logging.basicConfig(level=logging.INFO)
 
@@ -35,7 +36,9 @@ nominal_col = [
     'ptfall',
     'fxworried',
     'notworking',
-    'marital']
+    'marital',
+
+    'oralster', 'smoke']
 
 # We will fill null cells with 0 for these columns
 special_nominal = ['arthritis',
@@ -55,18 +58,6 @@ special_nominal = ['arthritis',
                    'tibfib', ]
 
 
-def set_directory():
-    # detect the current working directory and add the sub directory
-    main_path = os.getcwd()
-    absolute_path = main_path + "/pre_analysis_results"
-    try:
-        os.mkdir(absolute_path)
-    except OSError:
-        logging.info("Creation of the directory %s failed. Folder already exists." % absolute_path)
-    else:
-        logging.info("Successfully created the directory %s " % absolute_path)
-
-
 # __________________________________________________________
 
 # function to covert lbs to kg
@@ -75,6 +66,83 @@ def lbs_to_kg(weight_value):
     if weightLb is not None:
         weightKg = weightLb * 0.45359237
         return weightKg
+
+
+def bmi(height_value, weightKg):
+    # add a buffer to each weight to account for overweight individuals
+    buffer = 30
+
+    # for each weight, check if its greater than the BMI normal weight range, for the appopriate height interval
+    if height_value <= 152.4 and weightKg >= 56.7 + buffer:
+        # less than 5ft 0
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 152.4 < height_value <= 154.9 and weightKg >= 56.7 + buffer:
+        # 5ft0 to 5ft1
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 152.4 < height_value <= 157.5 and weightKg >= 59 + buffer:
+        # 5ft1 to 5ft2
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 157.5 < height_value <= 160 and weightKg >= 61.2 + buffer:
+        # 5ft2 < 5ft3
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 160 < height_value <= 162.6 and weightKg >= 63.5 + buffer:
+        # 5ft3 < 5ft4
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 162.6 < height_value <= 165.1 and weightKg >= 65.8 + buffer:
+        # 5ft4 < 5ft5
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 165.1 < height_value <= 167.6 and weightKg >= 68 + buffer:
+        # 5ft5 < 5ft6
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 167.6 < height_value <= 170.2 and weightKg >= 70.3 + buffer:
+        # 5ft6 < 5ft7
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 170.2 < height_value <= 172.7 and weightKg >= 72.6 + buffer:
+        # 5ft7 < 5ft8
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 172.7 < height_value <= 175.3 and weightKg >= 74.8 + buffer:
+        # 5ft8 < 5ft9
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 175.3 < height_value <= 177.8 and weightKg >= 77.1 + buffer:
+        # 5ft9 < 5ft10
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 177.8 < height_value <= 180.3 and weightKg >= 79.4 + buffer:
+        # 5ft10 < 5ft11
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 180.3 < height_value <= 182.9 and weightKg >= 81.6 + buffer:
+        # 5ft11 < 6ft0
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 182.9 < height_value <= 185.4 and weightKg >= 83.9 + buffer:
+        # 6ft0 < 6ft1
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 185.4 < height_value <= 188 and weightKg >= 86.2 + buffer:
+        # 6ft1 < 6ft2
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 188 < height_value <= 190.5 and weightKg >= 88.5 + buffer:
+        # 6ft2 < 6ft3
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 190.5 < height_value and weightKg >= 90.7 + buffer:
+        # max range
+        # 6ft3 < 6ft4
+        weightKg = lbs_to_kg(weightKg)
+
+    return weightKg
 
 
 # Converting Values into Metric
@@ -108,80 +176,10 @@ def data_to_metric(idx, height_value, weight_value):
             # distinct.
             weightKg = weight_value
 
+            doBmi = True
+            if doBmi:
+                weightKg = bmi(height_value, weightKg)
             # check if the weight thats assumed to be kg, is actually lbs (ex 95 kg or 95 lbs)
-
-            # add a buffer to each weight to account for overweight individuals
-            buffer = 30
-
-            # for each weight, check if its greater than the BMI normal weight range, for the appopriate height interval
-            if height_value <= 152.4 and weightKg >= 56.7 + buffer:
-                # less than 5ft 0
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 152.4 < height_value <= 154.9 and weightKg >= 56.7 + buffer:
-                # 5ft0 to 5ft1
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 152.4 < height_value <= 157.5 and weightKg >= 59 + buffer:
-                # 5ft1 to 5ft2
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 157.5 < height_value <= 160 and weightKg >= 61.2 + buffer:
-                # 5ft2 < 5ft3
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 160 < height_value <= 162.6 and weightKg >= 63.5 + buffer:
-                # 5ft3 < 5ft4
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 162.6 < height_value <= 165.1 and weightKg >= 65.8 + buffer:
-                # 5ft4 < 5ft5
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 165.1 < height_value <= 167.6 and weightKg >= 68 + buffer:
-                # 5ft5 < 5ft6
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 167.6 < height_value <= 170.2 and weightKg >= 70.3 + buffer:
-                # 5ft6 < 5ft7
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 170.2 < height_value <= 172.7 and weightKg >= 72.6 + buffer:
-                # 5ft7 < 5ft8
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 172.7 < height_value <= 175.3 and weightKg >= 74.8 + buffer:
-                # 5ft8 < 5ft9
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 175.3 < height_value <= 177.8 and weightKg >= 77.1 + buffer:
-                # 5ft9 < 5ft10
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 177.8 < height_value <= 180.3 and weightKg >= 79.4 + buffer:
-                # 5ft10 < 5ft11
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 180.3 < height_value <= 182.9 and weightKg >= 81.6 + buffer:
-                # 5ft11 < 6ft0
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 182.9 < height_value <= 185.4 and weightKg >= 83.9 + buffer:
-                # 6ft0 < 6ft1
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 185.4 < height_value <= 188 and weightKg >= 86.2 + buffer:
-                # 6ft1 < 6ft2
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 188 < height_value <= 190.5 and weightKg >= 88.5 + buffer:
-                # 6ft2 < 6ft3
-                weightKg = lbs_to_kg(weightKg)
-
-            elif 190.5 < height_value and weightKg >= 90.7 + buffer:
-                # max range
-                # 6ft3 < 6ft4
-                weightKg = lbs_to_kg(weightKg)
 
         else:
             # data is imperial
@@ -247,9 +245,6 @@ if __name__ == "__main__":
         file_name = sys.argv[1]
         logging.info(f'Loading Data {file_name}\n')
         df = pd.read_csv(file_name)
-
-        # Create the directory where the CSV files and images are going to be saved
-        set_directory()
 
     except ValueError as e:
         logging.error(e)
