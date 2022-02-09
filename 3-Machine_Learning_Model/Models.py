@@ -1,13 +1,10 @@
 import logging
 import sys
 
-import numpy as np
-import statistics
-from collections import Counter
-import pandas as pd
-from scipy import stats
-import seaborn as sns
+from yellowbrick.regressor import *
+from yellowbrick.model_selection import LearningCurve, ValidationCurve, RFECV, FeatureImportances
 import matplotlib.pyplot as plt
+import numpy as np
 import shutil
 # import the os module
 import os
@@ -109,7 +106,7 @@ def perform_predictions(top_models):
 
     # Perform Predictions on the top models with the unseen data
     print('Performing Predictions on unseen data')
-    predictions = [predict_model(i, unseen_data) for i in top_models]
+    predictions = [predict_model(i, data=unseen_data) for i in top_models]
 
     # Write the results to a text file and the predictions to csvs
     logging.info('Saving Results to Model_Results.txt')
@@ -139,7 +136,7 @@ def plot_results(top_models):
     models_results directory """
     current_dir = os.getcwd()
     dst_dir = current_dir + "/models_results"
-    plot_types = ['residuals', 'error', 'learning', 'vc', 'feature', 'cooks', 'manifold', 'rfe']
+    plot_types = ['residuals', 'error', 'learning', 'vc', 'feature', 'cooks', 'rfe']
 
     try:
         # Analyze the finalized models by saving their plots against the test data
@@ -147,7 +144,64 @@ def plot_results(top_models):
             # Create plots for the top 3 models
             for plot in plot_types:
                 try:
-                    plot_model(top_models[i], plot=plot, save=True, plot_kwargs=dict(sorted="RMSE"))
+                    if plot == 'residuals':
+                        visualizer = ResidualsPlot(top_models[i])
+                        X_train = get_config('X_train')
+                        y_train = get_config('y_train')
+                        X_test = get_config('X_test')
+                        y_test = get_config('y_test')
+                        visualizer.fit(X_train, y_train)
+                        visualizer.score(X_test, y_test)
+                        visualizer.show(outpath=f'model{i+1}_residuals.png', clear_figure=True)
+
+                    elif plot == 'error':
+                        visualizer = PredictionError(top_models[i])
+                        X_train = get_config('X_train')
+                        y_train = get_config('y_train')
+                        X_test = get_config('X_test')
+                        y_test = get_config('y_test')
+                        visualizer.fit(X_train, y_train)
+                        visualizer.score(X_test, y_test)
+                        visualizer.show(outpath=f'model{i + 1}_prediction_error.png', clear_figure=True)
+
+                    elif plot == 'learning':
+                        visualizer = LearningCurve(top_models[i], scoring='r2', param_name='Training Instances',
+                                                   param_range=np.arange(1, 800))
+                        X = get_config('X')
+                        y = get_config('y')
+                        visualizer.fit(X, y)
+                        visualizer.show(outpath=f'model{i + 1}_learning_curve.png', clear_figure=True)
+
+                    elif plot == 'vc':
+                        # This may not be viable to run in a script easily as each model algorithm uses a different parameter
+                        visualizer = ValidationCurve(top_models[i], scoring='r2', param_range=np.arange(1, 800),
+                                                     param_name='Training Instances')
+                        X = get_config('X')
+                        y = get_config('y')
+                        visualizer.fit(X, y)
+                        visualizer.show(outpath=f'model{i + 1}_validation_curve.png', clear_figure=True)
+
+                    elif plot == 'feature':
+                        visualizer = FeatureImportances(top_models[i])
+                        X = get_config('X')
+                        y = get_config('y')
+                        visualizer.fit(X, y)
+                        visualizer.show(outpath=f'model{i + 1}_feature_importance.png', clear_figure=True)
+
+                    elif plot == 'cooks':
+                        visualizer = CooksDistance()
+                        X = get_config('X')
+                        y = get_config('y')
+                        visualizer.fit(X, y)
+                        visualizer.show(outpath=f'model{i + 1}_cooks_distance.png', clear_figure=True)
+
+                    else:
+                        visualizer = RFECV(top_models[i])
+                        X = get_config('X')
+                        y = get_config('y')
+                        visualizer.fit(X, y)
+                        visualizer.show(outpath=f'model{i + 1}_recursive_feature_elimination.png', clear_figure=True)
+
                 except Exception as er:
                     logging.error(er)
                     logging.error(f"'{plot}' plot is not available for this model. Plotting a different graph.")
@@ -191,12 +245,14 @@ if __name__ == "__main__":
         main_data, unseen_data = setup_data(file_name)
 
         if main_data is not None:
-            exp_name = setup(data=main_data, target='bmdtest_tscore_fn', session_id=123, train_size=0.8, fold=10,
+            exp_name = setup(data=main_data, target='bmdtest_tscore_fn', session_id=123, train_size=0.7, fold=10,
+                             log_experiment=True, experiment_name='t_score_predictor_v2',
                              feature_interaction=True, feature_ratio=True, feature_selection=True,
-                             bin_numeric_features=['bmdtest_weight', 'bmdtest_height'],
+                             bin_numeric_features=['bmdtest_weight', 'bmdtest_height'], ignore_low_variance=True,
                              feature_selection_threshold=0.5, feature_selection_method='boruta',
                              categorical_features=['parentbreak', 'alcohol', 'oralster', 'smoke'],
                              normalize=True, normalize_method='minmax', silent=True, html=False)
+
             best_models = compare_models(sort='RMSE', n_select=3, fold=10)
 
             best_models.append(create_model('omp'))
@@ -207,11 +263,12 @@ if __name__ == "__main__":
             # Finalize the Model
             final_models = [finalize_model(i) for i in tuned_models]
 
+            # Perform the Predictions
+            perform_predictions(final_models)
+
             # Plot the Models
             plot_results(final_models)
 
-            # Perform the Predictions
-            perform_predictions(final_models)
 
             print('All Operations have been completed. Closing Program.')
 
