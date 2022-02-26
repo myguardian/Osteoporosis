@@ -1,3 +1,4 @@
+import sweetviz
 import logging
 import pandas as pd
 import numpy as np
@@ -5,6 +6,8 @@ from pathlib import Path
 import sys
 import os
 import sys
+
+
 
 # Use logging commands instead of print
 logging.basicConfig(level=logging.INFO)
@@ -31,7 +34,7 @@ nominal_cols = [
     'ptfall',
     'oralster',
     'smoke'
-    ]
+]
 
 # We will fill null cells with 0
 special_nominal_cols = ['arthritis',
@@ -50,6 +53,18 @@ special_nominal_cols = ['arthritis',
                         'shoulder',
                         'tibfib'
                         ]
+
+
+def set_directory(temp_path):
+    # detect the current working directory and add the sub directory
+    main_path = os.getcwd()
+    absolute_path = main_path + temp_path
+    try:
+        os.mkdir(absolute_path)
+    except OSError:
+        logging.error("Creation of the directory %s failed. Folder already exists." % absolute_path)
+    else:
+        logging.info("Successfully created the directory %s " % absolute_path)
 
 
 # Remove the duplicates using the Patient ID and Baseline ID. ID's are unique, meaning we shouldn't have duplicates
@@ -131,7 +146,6 @@ def fill_numerical_with_mean():
             logging.error(str(er))
 
 
-
 def fill_nominal_with_mode():
     for column in nominal_cols:
         try:
@@ -149,6 +163,16 @@ def fill_special_nominal_with_zero():
             logging.error(str(er))
 
 
+def create_html_report(data, save_path):
+    try:
+        logging.info(f'Creating sweetviz graph for {save_path}')
+        temp_analysis = sweetviz.analyze(data)
+        temp_analysis.show_html(save_path, open_browser=False)
+
+    except ValueError as er:
+        logging.error(str(er))
+
+
 if __name__ == "__main__":
     # Loading the data
     try:
@@ -156,6 +180,15 @@ if __name__ == "__main__":
         file_name = sys.argv[1]
         df = pd.read_csv(file_name)
 
+    except ValueError as e:
+        logging.error(str(e))
+        quit()
+
+    try:
+        logging.info(f'Setting Directories\n')
+        set_directory('Output')
+        set_directory('Output/pre_cleaning_results')
+        set_directory('Output/analysis_results')
     except ValueError as e:
         logging.error(str(e))
         quit()
@@ -170,13 +203,23 @@ if __name__ == "__main__":
         quit()
 
     try:
-        logging.info(f'Creating feature data frame html graph\n')
-        # analysis = sw.analyze(df)
-        # analysis.show_html('pre_analysis_results/pre_analysis.html', open_browser=False)
+        logging.info(f'Performing analysis on the unclean data\n')
+        create_html_report(df, 'Output/pre_cleaning_results/pre_analysis.html')
 
     except ValueError as e:
         logging.error(str(e))
-        logging.error('Error showing feature report\n')
+
+    try:
+        logging.info('Performing analysis on the unclean female and male data\n')
+        female_data = df[df['PatientGender'] == 1]
+        create_html_report(female_data, 'Output/pre_cleaning_results/pre_analysis_female.html')
+
+        male_data = df[df['PatientGender'] == 2]
+        create_html_report(male_data, 'Output/pre_cleaning_results/pre_analysis_male.html')
+
+    except ValueError as e:
+        logging.error(str(e))
+        quit()
 
     try:
         logging.info("Removing duplicates\n")
@@ -251,6 +294,25 @@ if __name__ == "__main__":
         df.to_csv(path, index=False)
 
         logging.info(f'Data saved to {path}\n')
+
+    except ValueError as e:
+        logging.error(str(e))
+        quit()
+
+    try:
+        logging.info('Performing Analysis on all the Data\n')
+        create_html_report(df, 'Output/analysis_results/analysis.html')
+    except ValueError as e:
+        logging.error(str(e))
+        quit()
+
+    try:
+        logging.info('Performing Analysis on the female and male data\n')
+        female_data = df[df['PatientGender'] == 1]
+        create_html_report(female_data, 'Output/analysis_results/analysis_female.html')
+
+        male_data = df[df['PatientGender'] == 2]
+        create_html_report(male_data, 'Output/analysis_results/analysis_male.html')
 
     except ValueError as e:
         logging.error(str(e))

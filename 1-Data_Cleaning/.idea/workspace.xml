@@ -20,41 +20,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="77e59c27-22ba-4a50-9642-5e9785b70895" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/Old_Main_Cleaning.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Clean_Data_Main.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Clean_Data_Main.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cleaning-Python.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/FeatureAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/FeatureAnalysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/aggregate_data_correlation.csv" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/aggregate_data_correlation.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/aggregate_data_descriptions.csv" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/aggregate_data_descriptions.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_alcohol_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_alcohol_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_ankle_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_ankle_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_arthritis_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_arthritis_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_cancer_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_cancer_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_clavicle_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_clavicle_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_diabetes_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_diabetes_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_education_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_education_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_elbow_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_elbow_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_femur_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_femur_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_fxworried_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_fxworried_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_heartdisease_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_heartdisease_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_hip_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_hip_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_marital_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_marital_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_notworking_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_notworking_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_parentbreak_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_parentbreak_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_respdisease_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_respdisease_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_shoulder_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_shoulder_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_spine_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_spine_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_tibfib_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_tibfib_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_whereliv_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_whereliv_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_wrist_pie.png" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/nominal_wrist_pie.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/osteoporosis.html" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/osteoporosis.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/osteoporosis_female.html" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/osteoporosis_female.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/osteoporosis_male.html" beforeDir="false" afterPath="$PROJECT_DIR$/../2-Feature_Analysis/analysis_results/osteoporosis_male.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Main_Cleaning.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main_Cleaning.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pre_analysis_results/pre_analysis.html" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
@@ -69,10 +51,11 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="TERMINAL_CUSTOM_COMMANDS_GOT_IT" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../1-Data_Cleaning" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/Main_Cleaning.py" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.tools" />
   </component>
-  <component name="RunManager">
-    <configuration name="cleaning-Python" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.Main_Cleaning">
+    <configuration name="Main_Cleaning" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="1-Data_Cleaning" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -84,7 +67,28 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/cleaning-Python.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Main_Cleaning.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Old_Main_Cleaning" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="1-Data_Cleaning" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="C:\Users\alexc\Pictures\Main_Osteoporosis\Osteoporosis\1-Data_Cleaning\Old_Main_Cleaning.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -95,7 +99,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.cleaning-Python" />
+        <item itemvalue="Python.Main_Cleaning" />
+        <item itemvalue="Python.Old_Main_Cleaning" />
       </list>
     </recent_temporary>
   </component>
@@ -125,33 +130,41 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="137" y="19" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1642974793004">
+    <state x="9" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1645838035103">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="137" y="19" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1366.728@0.0.1366.728" timestamp="1642974793004" />
-    <state x="463" y="119" key="FileChooserDialogImpl" timestamp="1642974443510">
+    <state x="9" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1366.728@0.0.1366.728" timestamp="1645838035103" />
+    <state x="463" y="119" key="FileChooserDialogImpl" timestamp="1645577079164">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="463" y="119" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1642974443510" />
-    <state width="1982" height="318" key="GridCell.Tab.0.bottom" timestamp="1642052298599">
+    <state x="463" y="119" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1645577079164" />
+    <state width="1345" height="179" key="GridCell.Tab.0.bottom" timestamp="1645838064891">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state width="1982" height="318" key="GridCell.Tab.0.bottom/0.0.1366.728/1366.0.2560.1440@1366.0.2560.1440" timestamp="1642025233708" />
-    <state width="1982" height="318" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1642052298599" />
-    <state width="1982" height="318" key="GridCell.Tab.0.center" timestamp="1642052298599">
+    <state width="1345" height="179" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1645838064891" />
+    <state width="1345" height="179" key="GridCell.Tab.0.center" timestamp="1645838064891">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state width="1982" height="318" key="GridCell.Tab.0.center/0.0.1366.728/1366.0.2560.1440@1366.0.2560.1440" timestamp="1642025233708" />
-    <state width="1982" height="318" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1642052298599" />
-    <state width="1982" height="318" key="GridCell.Tab.0.left" timestamp="1642052298599">
+    <state width="1345" height="179" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1645838064891" />
+    <state width="1345" height="179" key="GridCell.Tab.0.left" timestamp="1645838064891">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state width="1982" height="318" key="GridCell.Tab.0.left/0.0.1366.728/1366.0.2560.1440@1366.0.2560.1440" timestamp="1642025233708" />
-    <state width="1982" height="318" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1642052298599" />
-    <state width="1982" height="318" key="GridCell.Tab.0.right" timestamp="1642052298599">
+    <state width="1345" height="179" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1645838064891" />
+    <state width="1345" height="179" key="GridCell.Tab.0.right" timestamp="1645838064891">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state width="1982" height="318" key="GridCell.Tab.0.right/0.0.1366.728/1366.0.2560.1440@1366.0.2560.1440" timestamp="1642025233708" />
-    <state width="1982" height="318" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1642052298599" />
+    <state width="1345" height="179" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1645838064891" />
+    <state x="184" y="9" key="SettingsEditor" timestamp="1645576612903">
+      <screen x="0" y="0" width="1366" height="728" />
+    </state>
+    <state x="184" y="9" key="SettingsEditor/0.0.1366.728@0.0.1366.728" timestamp="1645576612903" />
+    <state x="275" y="97" key="Vcs.Push.Dialog.v2" timestamp="1645831603260">
+      <screen x="0" y="0" width="1366" height="728" />
+    </state>
+    <state x="275" y="97" key="Vcs.Push.Dialog.v2/0.0.1366.728@0.0.1366.728" timestamp="1645831603260" />
   </component>
 </project>
