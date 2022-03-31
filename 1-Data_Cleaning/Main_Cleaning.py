@@ -7,8 +7,6 @@ import sys
 import os
 import sys
 
-
-
 # Use logging commands instead of print
 logging.basicConfig(level=logging.INFO)
 
@@ -77,11 +75,92 @@ def remove_duplicates_with_id():
         logging.error(str(er))
 
 
-# Weight values are in kilograms
+
+# function to covert lbs to kg
 def lbs_to_kg(weight_value):
-    if weight_value is not None:
-        weightKg = weight_value * 0.45359237
+    weightLb = weight_value
+    if weightLb is not None:
+        weightKg = weightLb * 0.45359237
         return weightKg
+
+
+# Include max buffer
+def bmi_with_buff(height_value, weightKg):
+    # add a buffer to each weight to account for overweight individuals
+    buffer = 30
+
+    # for each weight, check if its greater than the BMI normal weight range, for the appopriate height interval
+    if height_value <= 152.4 and weightKg >= 56.7 + buffer:
+        # less than 5ft 0
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 152.4 < height_value <= 154.9 and weightKg >= 56.7 + buffer:
+        # 5ft0 to 5ft1
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 152.4 < height_value <= 157.5 and weightKg >= 59 + buffer:
+        # 5ft1 to 5ft2
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 157.5 < height_value <= 160 and weightKg >= 61.2 + buffer:
+        # 5ft2 < 5ft3
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 160 < height_value <= 162.6 and weightKg >= 63.5 + buffer:
+        # 5ft3 < 5ft4
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 162.6 < height_value <= 165.1 and weightKg >= 65.8 + buffer:
+        # 5ft4 < 5ft5
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 165.1 < height_value <= 167.6 and weightKg >= 68 + buffer:
+        # 5ft5 < 5ft6
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 167.6 < height_value <= 170.2 and weightKg >= 70.3 + buffer:
+        # 5ft6 < 5ft7
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 170.2 < height_value <= 172.7 and weightKg >= 72.6 + buffer:
+        # 5ft7 < 5ft8
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 172.7 < height_value <= 175.3 and weightKg >= 74.8 + buffer:
+        # 5ft8 < 5ft9
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 175.3 < height_value <= 177.8 and weightKg >= 77.1 + buffer:
+        # 5ft9 < 5ft10
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 177.8 < height_value <= 180.3 and weightKg >= 79.4 + buffer:
+        # 5ft10 < 5ft11
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 180.3 < height_value <= 182.9 and weightKg >= 81.6 + buffer:
+        # 5ft11 < 6ft0
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 182.9 < height_value <= 185.4 and weightKg >= 83.9 + buffer:
+        # 6ft0 < 6ft1
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 185.4 < height_value <= 188 and weightKg >= 86.2 + buffer:
+        # 6ft1 < 6ft2
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 188 < height_value <= 190.5 and weightKg >= 88.5 + buffer:
+        # 6ft2 < 6ft3
+        weightKg = lbs_to_kg(weightKg)
+
+    elif 190.5 < height_value and weightKg >= 90.7 + buffer:
+        # max range
+        # 6ft3 < 6ft4
+        weightKg = lbs_to_kg(weightKg)
+
+    return weightKg
+
 
 
 # Height and Weight values are in kilograms
@@ -118,6 +197,11 @@ def data_to_metric(idx, height_value, weight_value):
         # Lets convert the weight
         if isMetric:
             weightKg = weight_value
+            
+            # Lets convert the weight via buffers
+            doBmi = False
+            if doBmi:
+                weightKg = bmi_with_buff(height_value, weightKg)
         else:
             weightKg = lbs_to_kg(weight_value)
 
@@ -163,6 +247,7 @@ def fill_special_nominal_with_zero():
             logging.error(str(er))
 
 
+# Lets create a report using sweetviz
 def create_html_report(data, save_path):
     try:
         logging.info(f'Creating sweetviz graph for {save_path}')
@@ -301,6 +386,7 @@ if __name__ == "__main__":
 
     try:
         logging.info('Performing Analysis on all the Data\n')
+
         create_html_report(df, 'Output/analysis_results/analysis.html')
     except ValueError as e:
         logging.error(str(e))
@@ -308,6 +394,7 @@ if __name__ == "__main__":
 
     try:
         logging.info('Performing Analysis on the female and male data\n')
+
         female_data = df[df['PatientGender'] == 1]
         create_html_report(female_data, 'Output/analysis_results/analysis_female.html')
 
