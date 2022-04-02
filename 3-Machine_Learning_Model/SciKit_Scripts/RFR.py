@@ -1,10 +1,11 @@
-import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import pandas as pd
 import shutil
 # import the os module
+import numpy
+import numpy.random as np_random
 import os
 from glob import glob
 from yellowbrick.regressor import *
@@ -52,6 +53,8 @@ def setup_data(path):
     dataset.drop(dataset.index[dataset['ankle'] == 1], inplace=True)
 
     # Create the dataset that will be used to train the models
+    print('Number of rows in the dataset after the rows with ankle were removed: {}.\n{} rows were removed.'
+          .format(dataset.shape[0], size - dataset.shape[0]))
     # and the data that will be used to perform the predictions to test the models
 
     dataset.reset_index(drop=True, inplace=True)
@@ -90,7 +93,7 @@ def evaluate_model(regression_model, X_te, y_te, predictions):
     logging.info(
         f"Saving Results for {regression_model} to SciKit_Model_Results.txt")
     with open('SciKit_Model_Results.txt', 'a') as result_file:
-        rmse = np.sqrt(mean_squared_error(y_te, predictions))
+        rmse = numpy.sqrt(mean_squared_error(y_te, predictions))
         result_file.write(
             f"\nModel {regression_model}\n\nHyper Parameters: \n{regression_model.get_params()}\n"
             f"RMSE for Model {regression_model}: \n" +
@@ -131,13 +134,13 @@ def plot_results(regression_model, x_tr, y_tr, x_te, y_te, model_no):
 
                 elif plot == 'learning':
                     visualizer = LearningCurve(regression_model, scoring='r2', param_name='Training Instances',
-                                               param_range=np.arange(1, 800))
+                                               param_range=numpy.arange(1, 800))
                     visualizer.fit(x_tr, y_tr)
                     visualizer.show(outpath=f"model{model_no + 1}_learning_curve.png", clear_figure=True)
 
                 elif plot == 'vc':
                     visualizer = ValidationCurve(regression_model, scoring='r2',
-                                                 param_range=np.linspace(start=1, stop=2000),
+                                                 param_range=numpy.linspace(start=1, stop=2000),
                                                  param_name='max_depth', cv=10)
                     visualizer.fit(x_te, y_te)
                     visualizer.show(outpath=f"model{model_no + 1}max_depth.png",
@@ -184,25 +187,23 @@ def plot_results(regression_model, x_tr, y_tr, x_te, y_te, model_no):
 def objective_function_regression(estimator):
     rmse_array = cross_val_score(estimator, X_train, y_train, cv=10, n_jobs=-1,
                                  scoring=make_scorer(mean_squared_error))
-    return np.mean(rmse_array)
+    return numpy.mean(rmse_array)
 
 
 def create_search_space():
     scope.define(RandomForestRegressor)
     n_estimators = hp.choice('n_estimators', range(10, 500))
     max_depth = hp.choice('max_depth', range(3, 2000))
-    max_features = hp.choice('max_features', range(3, 9))
-    min_samples_leaf = hp.choice('min_samples_leaf', range(10, 50))
-    min_samples_split = hp.choice('min_samples_split', range(2, 40))
-    min_weight_fraction_leaf = hp.uniform('min_weight_fraction_leaf', 0.0, 0.5)
+    max_features = hp.choice('max_features', range(1, 8))
+    # min_samples_split = hp.choice('min_samples_split', range(2, 40))
+    # min_weight_fraction_leaf = hp.uniform('min_weight_fraction_leaf', 0.0, 0.5)
     max_leaf_nodes = hp.choice('max_leaf_nodes', range(2, 40))
 
     est0 = (0.1, scope.RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth,
-                                             min_samples_leaf=min_samples_leaf,
-                                             min_samples_split=min_samples_split,
+                                             # min_samples_split=min_samples_split,
                                              max_features=max_features,
                                              max_leaf_nodes=max_leaf_nodes,
-                                             min_weight_fraction_leaf=min_weight_fraction_leaf,
+                                             # min_weight_fraction_leaf=min_weight_fraction_leaf,
                                              ))
 
     search_space_regression = hp.pchoice('estimator', [est0])
@@ -284,15 +285,16 @@ if __name__ == "__main__":
         X = scale_data(X)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=786, shuffle=True)
 
-        rstate = np.random.RandomState(42)
+        rstate = numpy.random.RandomState(42)
 
         best = fmin(fn=objective_function_regression, space=rfr, algo=tpe.suggest, max_evals=300, rstate=rstate)
 
+        logging.info(best['max_features'])
+
         regressor = RandomForestRegressor(n_estimators=int(best['n_estimators']), max_depth=int(best['max_depth']),
-                                          min_samples_split=int(best['min_samples_split']),
-                                          min_weight_fraction_leaf=round(best['min_weight_fraction_leaf'], 1),
+                                          # min_samples_split=int(best['min_samples_split']),
+                                          # min_weight_fraction_leaf=round(best['min_weight_fraction_leaf'], 1),
                                           max_leaf_nodes=best['max_leaf_nodes'],
-                                          min_samples_leaf=best['min_samples_leaf'],
                                           max_features=best['max_features'],
                                           n_jobs=-1,
                                           random_state=456)
