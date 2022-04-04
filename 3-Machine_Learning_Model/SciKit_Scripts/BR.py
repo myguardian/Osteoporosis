@@ -289,7 +289,7 @@ if __name__ == "__main__":
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=786, shuffle=True)
 
         # Set the Random State for HyperOpt
-        rstate = np_random.RandomState(42)
+        rstate = np_random.default_rng(42)
 
         print(rstate)
 

@@ -284,7 +284,7 @@ if __name__ == "__main__":
         X = scale_data(X)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=786, shuffle=True)
 
-        rstate = np_random.RandomState(42)
+        rstate = np_random.default_rng(42)
 
         best = fmin(fn=objective_function_regression, space=rr, algo=tpe.suggest, max_evals=500, rstate=rstate)
         regressor = Ridge(alpha=best['alpha'], solver='svd', max_iter=best['max_iter'])
