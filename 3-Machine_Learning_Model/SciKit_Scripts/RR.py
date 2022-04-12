@@ -16,7 +16,7 @@ from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error, make_scorer
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 from yellowbrick.model_selection import LearningCurve, ValidationCurve, RFECV, FeatureImportances
 from yellowbrick.regressor import *
 
@@ -45,7 +45,6 @@ def setup_data(path):
     print('Number of rows in the dataset after the rows with missing values were removed: {}.\n{} rows were removed.'
           .format(dataset.shape[0], size - dataset.shape[0]))
 
-
     # Reset the Index
     dataset.reset_index(drop=True, inplace=True)
 
@@ -53,6 +52,9 @@ def setup_data(path):
     dataset.drop(['PatientId'], axis=1, inplace=True)
 
     dataset.drop(dataset.index[dataset['ankle'] == 1], inplace=True)
+
+    print('Number of rows in the dataset after the rows with ankle were removed: {}.\n{} rows were removed.'
+          .format(dataset.shape[0], size - dataset.shape[0]))
 
     # Create the dataset that will be used to train the models
     # and the data that will be used to perform the predictions to test the models
@@ -93,10 +95,20 @@ def encode_cat_data(data):
 
 
 def scale_data(x_train):
-    cols_to_scale = ['PatientAge', 'bmi']
+    cols_to_scale = ['PatientAge', 'bmi', 'Age*Gender', 'Age*bmi', 'Gender*bmi']
     scaler = StandardScaler()
     scaler.fit(x_train[cols_to_scale].copy())
     x_train[cols_to_scale] = scaler.transform(x_train[cols_to_scale])
+
+    return x_train
+
+
+def poly_data(x_train):
+    poly = PolynomialFeatures(2, include_bias=False, interaction_only=True)
+
+    x_train = pd.DataFrame(poly.fit_transform(x_train),
+                           columns=['PatientAge', 'PatientGender', 'bmi', 'Age*Gender', 'Age*bmi', 'Gender*bmi'])
+    x_train.drop(['PatientAge', 'PatientGender', 'bmi'], axis=1, inplace=True)
 
     return x_train
 
@@ -133,7 +145,7 @@ def plot_results(regression_model, x_tr, y_tr, x_te, y_te, model_no):
     """A function that takes in the top 3 models produced by PyCaret and plots the results and saves them to the
     models_results directory """
     current_dir = os.getcwd()
-    dst_dir = current_dir + "/models_results"
+    dst_dir = current_dir + "/Output/models_results"
     plot_types = ['residuals', 'error', 'learning', 'vc', 'feature', 'cooks', 'rfe']
 
     try:
@@ -237,13 +249,23 @@ def create_explainer(model, sample):
 
 def plot_waterfall(data, explainer, model_no):
     current_dir = os.getcwd()
-    dst_dir = current_dir + "/models_results"
+    female_data = data[data['PatientGender'] == 1]
+    male_data = data[data['PatientGender'] == 2]
+    dst_dir = current_dir + "/Output/models_results"
     sample_ind = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    shap_values = explainer(data)
+    female_shap_values = explainer(female_data)
+    male_shap_values = explainer(male_data)
+
     for ind in sample_ind:
-        shap.plots.waterfall(shap_values[ind], show=False)
+        shap.plots.waterfall(female_shap_values[ind], show=False)
         plt.tight_layout()
-        plt.savefig(f'waterfall_sample{ind}.png', )
+        plt.savefig(f'female_waterfall_sample{ind}.png', )
+        plt.clf()
+
+    for ind in sample_ind:
+        shap.plots.waterfall(male_shap_values[ind], show=False)
+        plt.tight_layout()
+        plt.savefig(f'male_waterfall_sample{ind}.png', )
         plt.clf()
 
     # Move the plots to their respective models directory
@@ -255,6 +277,14 @@ def plot_waterfall(data, explainer, model_no):
         if file.endswith('.png'):
             shutil.move(os.path.join(current_dir, file),
                         os.path.join(dst_dir + f"/scikit_model_{model_no + 1}" + '/waterfalls', file))
+
+
+def plot_summary(explainer, data, feature_names):
+    shap_values = explainer(data)
+    shap.summary_plot(shap_values, X_test, feature_names=feature_names, show=False)
+    plt.tight_layout()
+    plt.savefig(f'shap_summary.png', )
+    plt.clf()
 
 
 if __name__ == "__main__":
@@ -281,7 +311,18 @@ if __name__ == "__main__":
                                  'pt_response_shoulder_1.0',
                                  'pt_response_elbow_1.0', 'pt_response_femur_1.0', 'pt_response_wrist_1.0',
                                  'pt_response_tibfib_1.0'], 'bmdtest_tscore_fn')
+        logging.info('Explanatory Features and Target columns have been created')
+
+        poly_features = X[['PatientAge', 'PatientGender', 'bmi']]
+        poly_features = poly_data(poly_features)
+        logging.info('Polynomial Features have been created')
+
+        X = pd.concat([X, poly_features], axis=1)
+        logging.info('Polynomial Features have been added to the dataset')
+
+        # Scale the Data
         X = scale_data(X)
+        logging.info('Data has been scaled')
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=786, shuffle=True)
 
         rstate = np_random.default_rng(42)
@@ -305,6 +346,14 @@ if __name__ == "__main__":
         # perform predictions on the unseen data
         unseen_yhat = regressor.predict(X_test)
         evaluate_model(regressor, X_train, X_test, y_test, unseen_yhat)
+        plot_summary(model_explainer, X_test, ['PatientAge', 'PatientGender', 'bmi', 'pt_response_clavicle_1.0',
+                                               'pt_response_shoulder_1.0',
+                                               'pt_response_elbow_1.0', 'pt_response_femur_1.0',
+                                               'pt_response_wrist_1.0',
+                                               'pt_response_tibfib_1.0', 'Age*Gender', 'Age*bmi', 'Gender*bmi'])
         plot_results(regressor, X_train, y_train, X_test, y_test, 2)
 
-        print('All Operations have been completed. Closing Program.')
+        logging.info('All Operations have been completed. Closing Program.')
+
+    else:
+        logging.error('No data exists.')

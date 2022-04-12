@@ -1,6 +1,6 @@
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, PolynomialFeatures
 import pandas as pd
 import shutil
 # import the os module
@@ -14,8 +14,6 @@ import logging
 import sys
 from sklearn.metrics import mean_squared_error, make_scorer
 from sklearn.model_selection import cross_val_score
-from hyperopt import hp, fmin, tpe
-from hyperopt.pyll import scope
 import shap
 import matplotlib.pyplot as plt
 
@@ -80,6 +78,16 @@ def encode_cat_data(data):
     return dataset
 
 
+def poly_data(x_train):
+    poly = PolynomialFeatures(2, include_bias=False, interaction_only=True)
+
+    x_train = pd.DataFrame(poly.fit_transform(x_train),
+                           columns=['PatientAge', 'PatientGender', 'bmi', 'Age*Gender', 'Age*bmi', 'Gender*bmi'])
+    x_train.drop(['PatientAge', 'PatientGender', 'bmi'], axis=1, inplace=True)
+
+    return x_train
+
+
 def scale_data(x_train):
     cols_to_scale = ['PatientAge', 'bmi']
     scaler = StandardScaler()
@@ -113,7 +121,7 @@ def plot_results(regression_model, x_tr, y_tr, x_te, y_te, model_no):
     """A function that takes in a model and plots the results and saves them to the
     models_results directory """
     current_dir = os.getcwd()
-    dst_dir = current_dir + "/models_results"
+    dst_dir = current_dir + "/Output/models_results"
     plot_types = ['residuals', 'error', 'learning', 'vc', 'feature', 'cooks', 'rfe']
 
     try:
@@ -134,13 +142,13 @@ def plot_results(regression_model, x_tr, y_tr, x_te, y_te, model_no):
 
                 elif plot == 'learning':
                     visualizer = LearningCurve(regression_model, scoring='r2', param_name='Training Instances',
-                                               param_range=numpy.arange(1, 800))
+                                               param_range=numpy.arange(1, 8000))
                     visualizer.fit(x_tr, y_tr)
                     visualizer.show(outpath=f"model{model_no + 1}_learning_curve.png", clear_figure=True)
 
                 elif plot == 'vc':
                     visualizer = ValidationCurve(regression_model, scoring='r2',
-                                                 param_range=numpy.linspace(start=1, stop=2000),
+                                                 param_range=numpy.linspace(start=1, stop=100),
                                                  param_name='max_depth', cv=10)
                     visualizer.fit(x_te, y_te)
                     visualizer.show(outpath=f"model{model_no + 1}max_depth.png",
@@ -191,24 +199,23 @@ def objective_function_regression(estimator):
 
 
 def create_search_space():
-    scope.define(RandomForestRegressor)
-    n_estimators = hp.choice('n_estimators', range(10, 500))
-    max_depth = hp.choice('max_depth', range(3, 2000))
-    max_features = hp.choice('max_features', range(1, 8))
-    # min_samples_split = hp.choice('min_samples_split', range(2, 40))
-    # min_weight_fraction_leaf = hp.uniform('min_weight_fraction_leaf', 0.0, 0.5)
-    max_leaf_nodes = hp.choice('max_leaf_nodes', range(2, 40))
+    param = {'max_depth': [3, 6, 9, None],
+             'n_estimators': [50, 70, 100, 200, 300],
+             'max_features': [0.25, 0.5, 0.75, 1.0],
+             'criterion': ['mse', 'mae'],
+             'bootstrap': [True, False]}
+    # scope.define(RandomForestRegressor)
+    # max_depth = hp.choice('max_depth', range(1, 100))
+    # n_estimators = hp.choice('n_estimators', range(1, 401))
+    # max_features = hp.uniform('max_features', 0.1, 1.0)
+    #
+    # est0 = (0.1, scope.RandomForestRegressor(max_depth=max_depth, n_estimators=n_estimators, max_features=max_features))
+    #
+    # search_space_regression = hp.pchoice('estimator', [est0])
+    #
+    # return search_space_regression
 
-    est0 = (0.1, scope.RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth,
-                                             # min_samples_split=min_samples_split,
-                                             max_features=max_features,
-                                             max_leaf_nodes=max_leaf_nodes,
-                                             # min_weight_fraction_leaf=min_weight_fraction_leaf,
-                                             ))
-
-    search_space_regression = hp.pchoice('estimator', [est0])
-
-    return search_space_regression
+    return param
 
 
 def create_model_set(data, features, target):
@@ -237,13 +244,23 @@ def create_explainer(model, sample):
 
 def plot_waterfall(data, explainer, model_no):
     current_dir = os.getcwd()
-    dst_dir = current_dir + "/models_results"
+    female_data = data[data['PatientGender'] == 1]
+    male_data = data[data['PatientGender'] == 2]
+    dst_dir = current_dir + "/Output/models_results"
     sample_ind = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    shap_values = explainer(data)
+    female_shap_values = explainer(female_data)
+    male_shap_values = explainer(male_data)
+
     for ind in sample_ind:
-        shap.plots.waterfall(shap_values[ind], show=False)
+        shap.plots.waterfall(female_shap_values[ind], show=False)
         plt.tight_layout()
-        plt.savefig(f'waterfall_sample{ind}.png', )
+        plt.savefig(f'female_waterfall_sample{ind}.png', )
+        plt.clf()
+
+    for ind in sample_ind:
+        shap.plots.waterfall(male_shap_values[ind], show=False)
+        plt.tight_layout()
+        plt.savefig(f'male_waterfall_sample{ind}.png', )
         plt.clf()
 
     # Move the plots to their respective models directory
@@ -255,6 +272,14 @@ def plot_waterfall(data, explainer, model_no):
         if file.endswith('.png'):
             shutil.move(os.path.join(current_dir, file),
                         os.path.join(dst_dir + f"/scikit_model_{model_no + 1}" + '/waterfalls', file))
+
+
+def plot_summary(explainer, data, feature_names):
+    shap_values = explainer(data)
+    shap.summary_plot(shap_values, X_test, feature_names=feature_names, show=False)
+    plt.tight_layout()
+    plt.savefig(f'shap_summary.png', )
+    plt.clf()
 
 
 if __name__ == "__main__":
@@ -281,23 +306,37 @@ if __name__ == "__main__":
                                  'pt_response_shoulder_1.0',
                                  'pt_response_elbow_1.0', 'pt_response_femur_1.0', 'pt_response_wrist_1.0',
                                  'pt_response_tibfib_1.0'], 'bmdtest_tscore_fn')
+        logging.info('Explanatory Features and Target columns have been created')
 
+        poly_features = X[['PatientAge', 'PatientGender', 'bmi']]
+        poly_features = poly_data(poly_features)
+        logging.info('Polynomial Features have been created')
+
+        X = pd.concat([X, poly_features], axis=1)
+        logging.info('Polynomial Features have been added to the dataset')
+
+        # Scale the Data
         X = scale_data(X)
+        logging.info('Data has been scaled')
+
+        # rstate = np_random.default_rng(42)
+
+        # Split the data into training and testing data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=786, shuffle=True)
 
-        rstate = np_random.default_rng(42)
+        # Stopped using HyperOpt for this as it would not output consistent results
+        # best = fmin(fn=objective_function_regression, space=rfr, algo=tpe.suggest, max_evals=500, rstate=rstate)
+        #
+        # # Create a regressor model using the optimal choices chosen by the Bayesian Optimization
+        # rnd_state = np_random.RandomState(123)
+        # regressor = RandomForestRegressor(max_features=best['max_features'], max_depth=best['max_depth'],
+        #                                   n_estimators=best['n_estimators'], n_jobs=-1, random_state=rnd_state)
 
-        best = fmin(fn=objective_function_regression, space=rfr, algo=tpe.suggest, max_evals=300, rstate=rstate)
+        rnd_search = RandomizedSearchCV(RandomForestRegressor(), rfr, n_iter=10, n_jobs=-1, cv=10, random_state=854)
+        rnd_search.fit(X_train, y_train)
 
-        logging.info(best['max_features'])
-
-        regressor = RandomForestRegressor(n_estimators=int(best['n_estimators']), max_depth=int(best['max_depth']),
-                                          # min_samples_split=int(best['min_samples_split']),
-                                          # min_weight_fraction_leaf=round(best['min_weight_fraction_leaf'], 1),
-                                          max_leaf_nodes=best['max_leaf_nodes'],
-                                          max_features=best['max_features'],
-                                          n_jobs=-1,
-                                          random_state=456)
+        # Random Search
+        regressor = RandomForestRegressor(**rnd_search.best_params_, random_state=384)
 
         X100 = create_shap_sample(X, 100)
 
@@ -305,7 +344,6 @@ if __name__ == "__main__":
 
         regressor.fit(X_train, y_train)
 
-        # plot_partial_dependence(regressor, X_train, X100, model_explainer)
         plot_waterfall(X_test, model_explainer, 3)
 
         # predict from test set
@@ -314,6 +352,11 @@ if __name__ == "__main__":
 
         # perform predictions on the unseen data
         evaluate_model(regressor, X_test, y_test, yhat)
+        plot_summary(model_explainer, X_test, ['PatientAge', 'PatientGender', 'bmi', 'pt_response_clavicle_1.0',
+                                               'pt_response_shoulder_1.0',
+                                               'pt_response_elbow_1.0', 'pt_response_femur_1.0',
+                                               'pt_response_wrist_1.0',
+                                               'pt_response_tibfib_1.0', 'Age*Gender', 'Age*bmi', 'Gender*bmi'])
         plot_results(regressor, X_train, y_train, X_test, y_test, 3)
 
         print('All Operations have been completed. Closing Program.')
