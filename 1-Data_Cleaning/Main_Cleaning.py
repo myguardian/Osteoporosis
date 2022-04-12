@@ -75,7 +75,6 @@ def remove_duplicates_with_id():
         logging.error(str(er))
 
 
-
 # function to covert lbs to kg
 def lbs_to_kg(weight_value):
     weightLb = weight_value
@@ -162,7 +161,6 @@ def bmi_with_buff(height_value, weightKg):
     return weightKg
 
 
-
 # Height and Weight values are in kilograms
 def calculate_bmi(idx, height_value, weight_value):
     try:
@@ -197,7 +195,7 @@ def data_to_metric(idx, height_value, weight_value):
         # Lets convert the weight
         if isMetric:
             weightKg = weight_value
-            
+
             # Lets convert the weight via buffers
             doBmi = False
             if doBmi:
@@ -271,9 +269,9 @@ if __name__ == "__main__":
 
     try:
         logging.info(f'Setting Directories\n')
-        set_directory('Output')
-        set_directory('Output/pre_cleaning_results')
-        set_directory('Output/analysis_results')
+        set_directory('/Output')
+        set_directory('/Output/pre_cleaning_results')
+        set_directory('/Output/analysis_results')
     except ValueError as e:
         logging.error(str(e))
         quit()
