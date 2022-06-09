@@ -249,6 +249,72 @@ def fill_special_nominal_with_zero():
         except ValueError as er:
             logging.error(str(er))
 
+def fill_target_cols():
+    for column in target_cols:
+        for idx, age in enumerate(df['PatientAge']):
+            high_bmd = 0
+            low_bmd = 0
+            if pd.isna(df[column][idx]):
+                # for women
+                if df['PatientGender'][idx] == 1:
+                    if age < 60:
+                        high_bmd = -2.5
+                        low_bmd = -3.8
+                    elif age < 65:
+                        high_bmd = -2.3
+                        low_bmd = -3.7
+                    elif age < 70:
+                        high_bmd = -1.9
+                        low_bmd = -3.5
+                    elif age < 75:
+                        high_bmd = -1.7
+                        low_bmd = -3.2
+                    elif age < 80:
+                        high_bmd = -1.2
+                        low_bmd = -2.9
+                    elif age < 85:
+                        high_bmd = -0.5
+                        low_bmd = -2.6
+                    else:
+                        high_bmd = 0.1
+                        low_bmd = -2.2
+                # for men
+                else:
+                    if age < 60:
+                        high_bmd = -2.5
+                        low_bmd = -3.9
+                    elif age < 65:
+                        high_bmd = -2.5
+                        low_bmd = -3.7
+                    elif age < 70:
+                        high_bmd = -2.4
+                        low_bmd = -3.7
+                    elif age < 75:
+                        high_bmd = -2.3
+                        low_bmd = -3.7
+                    elif age < 80:
+                        high_bmd = -2.3
+                        low_bmd = -3.8
+                    elif age < 85:
+                        high_bmd = -2.1
+                        low_bmd = - 3.8
+                    else:
+                        high_bmd = -2.0
+                        low_bmd = -3.8
+
+                if df['bmdtest_tscore_fn'][idx] > high_bmd:
+                    df[column][idx] = 0
+                elif df['bmdtest_tscore_fn'][idx] > low_bmd:
+                    df[column][idx] = 1
+                elif df['bmdtest_tscore_fn'][idx] <= low_bmd:
+                    df[column][idx] = 2
+
+                if df['hip'][idx] == 1 or df['spine'][idx] == 1:
+                    df[column][idx] = 2
+
+                if df['oralster'][idx] == 1 or df['obreak'][idx] == 1 and df[column][idx] != 2:
+                    df[column][idx] += 1
+
 
 # Lets create a report using sweetviz
 def create_html_report(data, save_path):
@@ -283,7 +349,7 @@ if __name__ == "__main__":
 
     try:
         logging.info("Selecting features from Data\n")
-        all_columns = np.concatenate((patient_id_col, numerical_cols, nominal_cols, special_nominal_cols))
+        all_columns = np.concatenate((patient_id_col, numerical_cols, nominal_cols, special_nominal_cols, target_cols))
         df = df[all_columns]
 
     except ValueError as e:
@@ -370,6 +436,15 @@ if __name__ == "__main__":
             in range(len(df))]
 
         fill_bmi_with_mean()
+    except ValueError as e:
+        logging.error(str(e))
+        quit()
+
+    try:
+        # Fills in the target column bmdtest_10yr_caroc
+        logging.info('Filling in target column\n')
+        pd.options.mode.chained_assignment = None
+        fill_target_cols()
     except ValueError as e:
         logging.error(str(e))
         quit()
