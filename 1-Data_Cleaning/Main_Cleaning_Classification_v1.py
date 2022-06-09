@@ -309,11 +309,15 @@ def fill_target_cols():
                 elif df['bmdtest_tscore_fn'][idx] <= low_bmd:
                     df[column][idx] = 2
 
+                if (df['oralster'][idx] == 1 or df['obreak'][idx] == 1 or \
+                        df['ankle'][idx] == 1 or df['clavicle'][idx] == 1 or \
+                        df['elbow'][idx] == 1 or df['femur'][idx] == 1 or \
+                        df['wrist'][idx] == 1 or df['shoulder'][idx] == 1 or \
+                        df['tibfib'][idx] == 1) and df[column][idx] < 2:
+                    df[column][idx] += 1
+
                 if df['hip'][idx] == 1 or df['spine'][idx] == 1:
                     df[column][idx] = 2
-
-                if df['oralster'][idx] == 1 or df['obreak'][idx] == 1 and df[column][idx] != 2:
-                    df[column][idx] += 1
 
 
 # Lets create a report using sweetviz
