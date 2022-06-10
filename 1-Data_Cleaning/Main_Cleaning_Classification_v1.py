@@ -312,7 +312,7 @@ def fill_target_cols():
                 elif df['bmdtest_tscore_fn'][idx] <= low_bmd:
                     df[column][idx] = 2
 
-                if (df['oralster'][idx] == 1 or df['obreak'][idx] == 1 or \
+                if (df['oralster'][idx] == 1 or df['obreak'][idx] > 1 or \
                         df['ankle'][idx] == 1 or df['clavicle'][idx] == 1 or \
                         df['elbow'][idx] == 1 or df['femur'][idx] == 1 or \
                         df['wrist'][idx] == 1 or df['shoulder'][idx] == 1 or \
@@ -321,7 +321,6 @@ def fill_target_cols():
 
                 if df['hip'][idx] == 1 or df['spine'][idx] == 1:
                     df[column][idx] = 2
-
 
 # Lets create a report using sweetviz
 def create_html_report(data, save_path):
@@ -452,6 +451,8 @@ if __name__ == "__main__":
         logging.info('Filling in target column\n')
         pd.options.mode.chained_assignment = None
         fill_target_cols()
+        # Drops any rows with possible misinput/miscalculation
+        df = df[df.bmdtest_10yr_caroc != 0]
     except ValueError as e:
         logging.error(str(e))
         quit()
