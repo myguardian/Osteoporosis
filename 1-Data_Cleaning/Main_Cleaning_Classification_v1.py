@@ -226,9 +226,12 @@ def fill_bmi_with_mean():
 def fill_numerical_with_mean():
     for column in numerical_cols:
         try:
-            mean = df[column].mean()
-            df[column].fillna(mean, inplace=True)
-            df[column].replace(0, mean, inplace=True)
+            # mean[1] for female avg, mean[2] for male avg
+            mean = df.groupby(['PatientGender'])[column].mean()
+            df.loc[(df.PatientGender == 1) & (df[column].isnull()), column] = mean[1]
+            df.loc[(df.PatientGender == 1) & (df[column] == 0), column] = mean[1]
+            df.loc[(df.PatientGender == 2) & (df[column].isnull()), column] = mean[2]
+            df.loc[(df.PatientGender == 2) & (df[column] == 0), column] = mean[2]
         except ValueError as er:
             logging.error(str(er))
 
