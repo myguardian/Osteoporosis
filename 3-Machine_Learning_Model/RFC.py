@@ -10,7 +10,6 @@ import numpy
 import numpy.random as np_random
 import os
 from glob import glob
-from imblearn.over_sampling import SMOTENC
 from yellowbrick import ROCAUC
 from yellowbrick.classifier import ClassificationReport, ConfusionMatrix, ClassPredictionError
 from yellowbrick.model_selection import FeatureImportances
@@ -19,6 +18,7 @@ import sys
 import pickle
 import shap
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 
 def setup_data(path):
@@ -67,9 +67,9 @@ def setup_data(path):
 def set_directory():
     # detect the current working directory and add the sub directory
     main_path = os.getcwd()
-    absolute_path = main_path + "/Output/Classifier_results/RFC_Classifier_results"
+    absolute_path = main_path + "/Output"
     try:
-        os.mkdir(absolute_path)
+        Path(f'{absolute_path}/RemoteTrainedModels/RFC').mkdir(parents=True, exist_ok=True)
     except OSError:
         logging.info("Creation of the directory %s failed. Folder already exists." % absolute_path)
     else:
@@ -113,7 +113,7 @@ def plot_results(classification_model, x_tr, y_tr, x_te, y_te):
     """A function that takes in a model and plots the results and saves them to the
     models_results directory """
     current_dir = os.getcwd()
-    dst_dir = current_dir + "/Output/Classifier_results/RFC_Classifier_results"
+    dst_dir = current_dir + "/Output/RemoteTrainedModels/RFC"
     plot_types = ['classification_report', 'conf_mat', 'ROCAUC', 'class_pred_err', 'feature_importance']
     classes = ['Moderate', 'High']
 
@@ -122,31 +122,31 @@ def plot_results(classification_model, x_tr, y_tr, x_te, y_te):
         for plot in plot_types:
             try:
                 if plot == 'classification_report':
-                    visualizer = ClassificationReport(classification_model, classes=classes, support=True)
+                    visualizer = ClassificationReport(classification_model, classes=classes, support=True, is_fitted=True)
                     visualizer.fit(x_tr, y_tr)
                     visualizer.score(x_te, y_te)
                     visualizer.show(outpath=f"RFC_classification_report.png", clear_figure=True)
 
                 elif plot == 'conf_mat':
-                    visualizer = ConfusionMatrix(classification_model, classes=classes)
+                    visualizer = ConfusionMatrix(classification_model, classes=classes, is_fitted=True)
                     visualizer.fit(x_tr, y_tr)
                     visualizer.score(x_te, y_te)
                     visualizer.show(outpath=f"RFC_confusion_matrix.png", clear_figure=True)
 
                 elif plot == 'ROCAUC':
-                    visualizer = ROCAUC(classification_model, classes=classes)
+                    visualizer = ROCAUC(classification_model, classes=classes, is_fitted=True)
                     visualizer.fit(x_tr, y_tr)
                     visualizer.score(x_te, y_te)
                     visualizer.show(outpath=f"RFC_ROCAUC.png", clear_figure=True)
 
                 elif plot == 'class_pred_err':
-                    visualizer = ClassPredictionError(classification_model, classes=classes)
+                    visualizer = ClassPredictionError(classification_model, classes=classes, is_fitted=True)
                     visualizer.fit(x_tr, y_tr)
                     visualizer.score(x_te, y_te)
                     visualizer.show(outpath=f"RFC_Class_Prediction_Error.png", clear_figure=True)
 
                 else:
-                    visualizer = FeatureImportances(classification_model)
+                    visualizer = FeatureImportances(classification_model, is_fitted=True)
                     visualizer.fit(x_tr, y_tr)
                     visualizer.show(outpath=f"RFC_Feature Importance.png", clear_figure=True)
 
@@ -195,12 +195,22 @@ def create_explainer(model, sample):
 def plot_summary(explainer, data, feature_names):
     shap_values = explainer(data)
     shap.summary_plot(shap_values, data, feature_names=feature_names, show=False)
-    plt.savefig(f'Output/Classifier_results/RFC_Classifier_results/shap_summary.png', )
+    plt.savefig(f'Output/RemoteTrainedModels/RFC/shap_summary.png')
     plt.clf()
 
 
 def save_model(filename, model):
+    current_dir = os.getcwd()
+    dst_dir = current_dir + "/Output/RemoteTrainedModels/RFC"
     pickle.dump(model, open(filename, 'wb'))
+    files = glob('*.sav')
+    if len(files) == 0:
+        logging.info('There are no Plots to move.')
+        return
+    for file in files:
+        if file.endswith('.sav'):
+            shutil.move(os.path.join(current_dir, file),
+                        os.path.join(dst_dir, file))
 
 
 if __name__ == "__main__":
@@ -223,15 +233,14 @@ if __name__ == "__main__":
     if main_data is not None:
         main_data = encode_cat_data(main_data)
         X, y = create_model_set(main_data,
-                                ['PatientAge', "PatientGender", 'bmdtest_weight', 'bmdtest_height',
-                                 ],
+                                ['PatientAge', "PatientGender", 'bmdtest_weight', 'bmdtest_height'],
                                 'bmdtest_10yr_caroc_2.0')
         # oversample = SMOTENC(categorical_features=[1, 4, 5, 6, 7, 8, 9, 10], random_state=1)
         # X, y = oversample.fit_resample(X, y)
         logging.info('Explanatory Features and Target columns have been created')
 
         # Scale the Data
-        X = scale_data(X)
+        # X = scale_data(X)
         # logging.info('Data has been scaled')
 
         # Split the data into training and testing data
@@ -260,7 +269,7 @@ if __name__ == "__main__":
         print(counter)
 
         # Save Model
-        save_model('Output/Classifier_results/RFC_Classifier_results/random_forest_model.sav', classifier)
+        save_model('remote_random_forest_model.sav', classifier)
 
         plot_results(classifier, X_train, y_train, X_test, y_test)
 
