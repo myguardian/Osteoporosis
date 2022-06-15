@@ -11,6 +11,8 @@ import os
 from glob import glob
 from pycaret.regression import *
 from pycaret.utils import check_metric
+from sklearn.inspection import permutation_importance
+from sklearn.metrics import mean_squared_error, make_scorer
 
 
 def set_directory():
@@ -121,6 +123,7 @@ def perform_predictions(top_models):
                 f"{check_metric(predictions[i].bmdtest_tscore_fn, predictions[i].Label, 'R2')} \n"
             )
 
+
     # Move the Model Results csvs to the results directory
     try:
         shutil.move(os.path.join(current_dir, 'Model_Results.txt'), os.path.join(dst_dir, 'Model_Results.txt'))
@@ -136,7 +139,7 @@ def plot_results(top_models):
     models_results directory """
     current_dir = os.getcwd()
     dst_dir = current_dir + "/models_results"
-    plot_types = ['residuals', 'error', 'learning', 'vc', 'feature', 'cooks', 'rfe']
+    plot_types = ['residuals', 'error', 'learning', 'vc', 'feature', 'cooks', 'rfe', 'permutation']
 
     try:
         # Analyze the finalized models by saving their plots against the test data
@@ -195,6 +198,11 @@ def plot_results(top_models):
                         visualizer.fit(X, y)
                         visualizer.show(outpath=f'model{i + 1}_cooks_distance.png', clear_figure=True)
 
+                    elif plot == 'permutation':
+                        X_train = get_config('X_train')
+                        y_train = get_config('y_train')
+                        find_permutation_importance(top_models[i], i + 1, X_train, y_train)
+
                     else:
                         visualizer = RFECV(top_models[i])
                         X = get_config('X')
@@ -229,6 +237,16 @@ def plot_results(top_models):
     except Exception as er:
         logging.error(er)
         logging.error("Plot Operations were unable to be completed.")
+
+
+def find_permutation_importance(model, name, X, y):
+
+    result = permutation_importance(model, X, y, n_repeats=100, scoring='r2')
+    sorted_importances_idx = result.importances_mean.argsort()
+
+    plt.barh(X.columns[sorted_importances_idx], result.importances_mean[sorted_importances_idx].T)
+    plt.xlabel('Permutation Importance')
+    plt.savefig(f'model{name}_permutation_importance.png')
 
 
 if __name__ == "__main__":
