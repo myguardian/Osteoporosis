@@ -201,7 +201,7 @@ def plot_results(top_models):
                     elif plot == 'permutation':
                         X_train = get_config('X_train')
                         y_train = get_config('y_train')
-                        find_permutation_importance(top_models[i], i + 1, X_train, y_train)
+                        plot_permutation_importance(top_models[i], i + 1, X_train, y_train)
 
                     else:
                         visualizer = RFECV(top_models[i])
@@ -239,7 +239,7 @@ def plot_results(top_models):
         logging.error("Plot Operations were unable to be completed.")
 
 
-def find_permutation_importance(model, name, X, y):
+def plot_permutation_importance(model, name, X, y):
 
     result = permutation_importance(model, X, y, n_repeats=100, scoring='r2')
     sorted_importances_idx = result.importances_mean.argsort()
