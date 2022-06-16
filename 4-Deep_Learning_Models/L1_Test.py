@@ -177,11 +177,6 @@ def perform_deep_learning_control(path):
             # Permutation Importance
             plot_permutation_importance(model, name, train_features, train_labels)
 
-            # Feature Importance
-            visualizer = FeatureImportances(model, relative=False)
-            visualizer.fit(train_features, train_labels)
-            visualizer.show(outpath=f"L1_results/{name}_feature_importance.png", clear_figure=True)
-
         f.close()
         logging.info(f'Deep Learning Analysis Results Complete')
     except ValueError as er:
@@ -302,11 +297,6 @@ def perform_deep_learning_wrist(path):
             # Permutation Importance
             plot_permutation_importance(model, name, train_features, train_labels)
 
-            # Feature Importance
-            visualizer = FeatureImportances(model, relative=False)
-            visualizer.fit(train_features, train_labels)
-            visualizer.show(outpath=f"L1_results/{name}_feature_importance.png", clear_figure=True)
-
         f.close()
         logging.info(f'Deep Learning Analysis Results Complete')
     except ValueError as er:
@@ -425,11 +415,6 @@ def perform_deep_learning_shoulder(path):
 
             # Permutation Importance
             plot_permutation_importance(model, name, train_features, train_labels)
-
-            # Feature Importance
-            visualizer = FeatureImportances(model, relative=False)
-            visualizer.fit(train_features, train_labels)
-            visualizer.show(outpath=f"L1_results/{name}_feature_importance.png", clear_figure=True)
 
         f.close()
         logging.info(f'Deep Learning Analysis Results Complete')
@@ -551,11 +536,6 @@ def perform_deep_learning_male(path):
 
             # Permutation Importance
             plot_permutation_importance(model, name, train_features, train_labels)
-
-            # Feature Importance
-            visualizer = FeatureImportances(model, relative=False)
-            visualizer.fit(train_features, train_labels)
-            visualizer.show(outpath=f"L1_results/{name}_feature_importance.png", clear_figure=True)
 
         f.close()
         logging.info(f'Deep Learning Analysis Results Complete')
