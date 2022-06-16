@@ -10,6 +10,7 @@ import statistics
 import keras
 import tensorflow as tf
 import matplotlib.pyplot as plt
+from yellowbrick.model_selection import FeatureImportances
 
 print(tf.__version__)
 from tensorflow import keras
@@ -18,6 +19,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from numpy.random import seed
 import io
+from sklearn.inspection import permutation_importance
+from sklearn.metrics import mean_squared_error, make_scorer
 
 
 def set_directory():
@@ -171,6 +174,9 @@ def perform_deep_learning_control(path):
             # plt.clf()
             # plt.close
 
+            # Permutation Importance
+            plot_permutation_importance(model, name, train_features, train_labels)
+
         f.close()
         logging.info(f'Deep Learning Analysis Results Complete')
     except ValueError as er:
@@ -286,6 +292,9 @@ def perform_deep_learning_wrist(path):
             # plt.savefig(f'L2_results/{name}_ShapSummary.png', bbox_inches = "tight")
             # plt.clf()
             # plt.close
+
+            # Permutation Importance
+            plot_permutation_importance(model, name, train_features, train_labels)
 
         f.close()
         logging.info(f'Deep Learning Analysis Results Complete')
@@ -404,6 +413,9 @@ def perform_deep_learning_shoulder(path):
             # plt.clf()
             # plt.close
 
+            # Permutation Importance
+            plot_permutation_importance(model, name, train_features, train_labels)
+
         f.close()
         logging.info(f'Deep Learning Analysis Results Complete')
     except ValueError as er:
@@ -521,6 +533,10 @@ def perform_deep_learning_male(path):
             # plt.savefig(f'L2_results/{name}_ShapSummary.png', bbox_inches = "tight")
             # plt.clf()
             # plt.close
+
+            # Permutation Importance
+            plot_permutation_importance(model, name, train_features, train_labels)
+
         f.close()
         logging.info(f'Deep Learning Analysis Results Complete')
     except ValueError as er:
@@ -637,12 +653,28 @@ def perform_deep_learning_female(path):
             # plt.clf()
             # plt.close
 
+            # Permutation Importance
+            plot_permutation_importance(model, name, train_features, train_labels)
+
         f.close()
         logging.info(f'Deep Learning Analysis Results Complete')
     except ValueError as er:
         logging.error(er)
         logging.error('Unable to create and train deep learning models')
         f.close()
+
+
+def plot_permutation_importance(model, name, X, y):
+
+    result = permutation_importance(model, X, y, n_repeats=50, scoring=make_scorer(mean_squared_error))
+    sorted_importances_idx = result.importances_mean.argsort()
+
+    importance = pd.DataFrame(result.importances.T, columns=X.columns)
+    importance.to_csv(f'L2_results/{name}_permutation_importance.csv')
+
+    plt.barh(X.columns[sorted_importances_idx], result.importances_mean[sorted_importances_idx].T)
+    plt.xlabel('Permutation Importance')
+    plt.savefig(f'L2_results/{name}_permutation_importance.png')
 
 
 if __name__ == "__main__":

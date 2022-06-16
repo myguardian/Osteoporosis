@@ -7,12 +7,14 @@ from glob import glob
 from yellowbrick.regressor import *
 from yellowbrick.model_selection import LearningCurve, ValidationCurve, RFECV, FeatureImportances
 from yellowbrick.contrib.wrapper import wrap
+from sklearn.metrics import mean_squared_error, make_scorer
 import logging
 import sys
 import shap
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import catboost as cb
 import matplotlib.pyplot as plt
+from sklearn.inspection import permutation_importance
 
 
 def setup_data(path):
@@ -90,7 +92,7 @@ def plot_results(regression_model, x_tr, y_tr, x_te, y_te, model_no):
     models_results directory """
     current_dir = os.getcwd()
     dst_dir = current_dir + "/Output/models_results"
-    plot_types = ['residuals', 'error', 'learning', 'vc', 'feature', 'cooks', 'rfe']
+    plot_types = ['residuals', 'error', 'learning', 'vc', 'feature', 'cooks', 'rfe', 'permutation']
     regression_model = wrap(regression_model)
 
     try:
@@ -132,6 +134,9 @@ def plot_results(regression_model, x_tr, y_tr, x_te, y_te, model_no):
                     visualizer = CooksDistance()
                     visualizer.fit(X, y)
                     visualizer.show(outpath=f"model{model_no + 1}_cooks_distance.png", clear_figure=True)
+
+                elif plot == 'permutation':
+                    plot_permutation_importance(regression_model, model_no + 1, x_tr, y_tr)
 
                 else:
                     visualizer = RFECV(regression_model)
@@ -230,6 +235,17 @@ def plot_summary(explainer, data, feature_names):
     plt.savefig(f'shap_summary.png', )
     plt.clf()
 
+def plot_permutation_importance(model, name, X, y):
+
+    result = permutation_importance(model, X, y, n_repeats=50, scoring=make_scorer(mean_squared_error))
+    sorted_importances_idx = result.importances_mean.argsort()
+
+    importance = pd.DataFrame(result.importances_mean.T, columns=X.columns)
+    importance.to_csv(f'model{name}_permutation_importance.csv')
+
+    plt.barh(X.columns[sorted_importances_idx], result.importances_mean[sorted_importances_idx].T)
+    plt.xlabel('Permutation Importance')
+    plt.savefig(f'model{name}_permutation_importance.png')
 
 if __name__ == "__main__":
     try:
@@ -292,6 +308,8 @@ if __name__ == "__main__":
 
         # Create Waterfall diagrams of a set of samples from the dataset to explain why they guessed these specific values
         plot_waterfall(X_test, model_explainer, 4)
+
+        plot_permutation_importance(catboost, 'Catboost', X_train, y_train)
 
     else:
         logging.error('No data exists.')
