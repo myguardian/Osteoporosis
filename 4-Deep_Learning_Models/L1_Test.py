@@ -648,11 +648,6 @@ def perform_deep_learning_female(path):
             # Permutation Importance
             plot_permutation_importance(model, name, train_features, train_labels)
 
-            # Feature Importance
-            visualizer = FeatureImportances(model, relative=False)
-            visualizer.fit(train_features, train_labels)
-            visualizer.show(outpath=f"L1_results/{name}_feature_importance.png", clear_figure=True)
-
             # plt.figure()
             # e = shap.KernelExplainer(model, train_features)
             # shap_values = e.shap_values(test_features)
