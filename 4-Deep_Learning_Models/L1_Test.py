@@ -416,6 +416,7 @@ def perform_deep_learning_shoulder(path):
             # Permutation Importance
             plot_permutation_importance(model, name, train_features, train_labels)
 
+
         f.close()
         logging.info(f'Deep Learning Analysis Results Complete')
     except ValueError as er:
