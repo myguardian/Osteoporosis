@@ -1,0 +1,5 @@
+PROJECT_NAME = "RFC Model - Osteoporosis Risk Level API"
+API_V1_STR = "/api/v1"
+RFC_PATH = "files/FRAX_random_forest_model.sav"
+DATASET_PATH = "files/Clean_Data_Main_FRAXv1.csv"
+STANDARD_SC_PATH = "files/scaler_joblib.sav"
