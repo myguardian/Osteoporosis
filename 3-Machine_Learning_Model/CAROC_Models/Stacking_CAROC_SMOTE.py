@@ -219,7 +219,7 @@ if __name__ == '__main__':
 
     try:
         # get data file
-        # run with ../1-Data_Cleaning/Output/Clean_Data_Main.csv
+        # run with ../1-Data_Cleaning/Output/FRAX_V3.csv
         file_name = sys.argv[1]
         logging.info(f'Loading Data {file_name}\n')
 

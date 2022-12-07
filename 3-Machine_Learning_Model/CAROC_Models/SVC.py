@@ -105,7 +105,6 @@ def plot_high_probability_to_tscore(y_prob, tscore, gender, name):
     plt.grid(True)
     plt.savefig(f'SVC_Results/SVC_High_Risk_Probability_vs_Tscore_{name}.png')
     plt.clf()
-    plt.close
 
 def build_run_and_plot(path, c, gamma, kernel, name):
 

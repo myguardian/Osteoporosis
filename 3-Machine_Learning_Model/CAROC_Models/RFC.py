@@ -1,18 +1,18 @@
 from collections import Counter
 
+from imblearn.over_sampling import SMOTENC
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, RandomizedSearchCV, GridSearchCV
-from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler, PolynomialFeatures
+from sklearn.inspection import permutation_importance
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import shutil
-# import the os module
 import numpy
 import numpy.random as np_random
 import os
 from glob import glob
 from yellowbrick import ROCAUC
 from yellowbrick.classifier import ClassificationReport, ConfusionMatrix, ClassPredictionError
-from yellowbrick.model_selection import FeatureImportances
 import logging
 import sys
 import pickle
@@ -87,9 +87,9 @@ def create_model_set(data, features, target):
 def encode_cat_data(data):
     cat_features = ['parentbreak', 'alcohol',
                     'arthritis', 'cancer', 'diabetes', 'heartdisease',
-                    'oralster', 'smoke', 'respdisease', 'hbp',
-                    'ptunsteady', 'wasfractdue2fall', 'cholesterol',
-                    'ptfall', 'shoulder', 'wrist', 'bmdtest_10yr_caroc']
+                    'oralster', 'smoke', 'respdisease',
+                    'ptunsteady', 'wasfractdue2fall',
+                    'ptfall', 'bmdtest_10yr_caroc']
     dataset = data.copy()
 
     for feature in cat_features:
@@ -101,7 +101,7 @@ def encode_cat_data(data):
 
 
 def scale_data(x_train):
-    cols_to_scale = ['PatientAge', 'bmdtest_weight', 'bmdtest_height']
+    cols_to_scale = ['PatientAge', 'bmi']
     scaler = StandardScaler()
     scaler.fit(x_train[cols_to_scale])
     x_train[cols_to_scale] = scaler.transform(x_train[cols_to_scale])
@@ -122,7 +122,8 @@ def plot_results(classification_model, x_tr, y_tr, x_te, y_te):
         for plot in plot_types:
             try:
                 if plot == 'classification_report':
-                    visualizer = ClassificationReport(classification_model, classes=classes, support=True, is_fitted=True)
+                    visualizer = ClassificationReport(classification_model, classes=classes, support=True,
+                                                      is_fitted=True)
                     visualizer.fit(x_tr, y_tr)
                     visualizer.score(x_te, y_te)
                     visualizer.show(outpath=f"RFC_classification_report.png", clear_figure=True)
@@ -146,9 +147,16 @@ def plot_results(classification_model, x_tr, y_tr, x_te, y_te):
                     visualizer.show(outpath=f"RFC_Class_Prediction_Error.png", clear_figure=True)
 
                 else:
-                    visualizer = FeatureImportances(classification_model, is_fitted=True)
-                    visualizer.fit(x_tr, y_tr)
-                    visualizer.show(outpath=f"RFC_Feature Importance.png", clear_figure=True)
+                    result = permutation_importance(classification_model, x_tr, y_tr, n_repeats=50, scoring='roc_auc')
+                    sorted_importances_idx = result.importances_mean.argsort()
+
+                    # importance = pd.DataFrame(result.importances.T, columns=X.columns)
+                    # importance.to_csv(f'RFC_permutation_importance.csv')
+
+                    plt.barh(X.columns[sorted_importances_idx], result.importances_mean[sorted_importances_idx].T)
+                    plt.xlabel('Permutation Importance')
+                    plt.savefig(f'RFC_permutation_importance.png')
+                    plt.clf()
 
             except Exception as er:
                 logging.error(er)
@@ -195,6 +203,7 @@ def create_explainer(model, sample):
 def plot_summary(explainer, data, feature_names):
     shap_values = explainer(data)
     shap.summary_plot(shap_values, data, feature_names=feature_names, show=False)
+    plt.tight_layout()
     plt.savefig(f'Output/RemoteTrainedModels/RFC/shap_summary.png')
     plt.clf()
 
@@ -218,7 +227,7 @@ if __name__ == "__main__":
         set_directory()
         # Get the data from the argument
         file_name = sys.argv[1]
-        # file_name = '../Clean_Data_Main.csv'
+        # file_name = '../FRAX_V3.csv'
         logging.info(f'Loading Data {file_name}\n')
 
         # Perform the analysis and generate the images
@@ -233,21 +242,32 @@ if __name__ == "__main__":
     if main_data is not None:
         main_data = encode_cat_data(main_data)
         X, y = create_model_set(main_data,
-                                ['PatientAge', "PatientGender", 'bmdtest_weight', 'bmdtest_height'],
+                                ['PatientAge', "PatientGender", 'bmi', 'alcohol_1.0',
+                                 'smoke_1.0', 'arthritis_1.0', 'diabetes_1.0'],
                                 'bmdtest_10yr_caroc_2.0')
-        # oversample = SMOTENC(categorical_features=[1, 4, 5, 6, 7, 8, 9, 10], random_state=1)
-        # X, y = oversample.fit_resample(X, y)
+
         logging.info('Explanatory Features and Target columns have been created')
 
         # Scale the Data
-        # X = scale_data(X)
-        # logging.info('Data has been scaled')
+        X = scale_data(X)
+        logging.info('Data has been scaled')
 
         # Split the data into training and testing data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=True, random_state=2)
         X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, shuffle=True, random_state=3)
-        print(X_test.shape)
 
+        # Balance the data using SMOTE for Nominal and Continuous data
+        oversample = SMOTENC(categorical_features=[1, 3, 4, 5, 6],
+                             random_state=1)
+
+        # Debug statements to ensure the data is properly balanced after SMOTE is applied
+        print(f"Y train Before Oversample: {Counter(y_train)}")
+
+        X_train, y_train = oversample.fit_resample(X_train, y_train)
+
+        print(f"Y train After Oversample: {Counter(y_train)}")
+
+        # Search for the best hyperparameters of the Random Forest Classifier
         rnd_search = RandomizedSearchCV(RandomForestClassifier(random_state=4), rfc, n_iter=30, n_jobs=-1, cv=10,
                                         verbose=1, random_state=5)
         rnd_search.fit(X_val, y_val)
@@ -258,19 +278,25 @@ if __name__ == "__main__":
 
         classifier.fit(X_train, y_train)
 
-        shap_sample = create_shap_sample(X_train, int((len(X_train) * 0.2)))
+        # Shap Values are used to also help determine the impact of features used in the model
+        # usually try to create a sample that is 20% of the test dataset
+        shap_sample = create_shap_sample(X_test, int((len(X_test) * 0.2)))
 
         model_explainer = create_explainer(classifier, shap_sample)
 
-        plot_summary(model_explainer, shap_sample, ['PatientAge', "PatientGender", 'bmdtest_weight', 'bmdtest_height'])
+        # Plot a Summary of the model with all the used features
+        plot_summary(model_explainer, shap_sample, ['PatientAge', "PatientGender", 'bmi', 'alcohol_1.0',
+                                                    'smoke_1.0', 'arthritis_1.0', 'diabetes_1.0'])
         # predict from test set
         yhat = classifier.predict(X_test)
         counter = Counter(yhat)
+        print(Counter(y_test))
         print(counter)
 
         # Save Model
         save_model('remote_random_forest_model.sav', classifier)
 
+        # Plot all the results
         plot_results(classifier, X_train, y_train, X_test, y_test)
 
         print('All Operations have been completed. Closing Program.')

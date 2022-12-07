@@ -3,6 +3,7 @@ import os
 import pickle
 import shutil
 import sys
+from collections import Counter
 from glob import glob
 from pathlib import Path
 
@@ -61,7 +62,7 @@ def setup_data(path):
     # Drop the PatientID column as it is no longer needed
     dataset.drop(['PatientId'], axis=1, inplace=True)
 
-    dataset.drop(dataset.index[dataset['ankle'] == 1], inplace=True)
+    # dataset.drop(dataset.index[dataset['ankle'] == 1], inplace=True)
     print('Number of rows in the dataset after the rows with ankle were removed: {}.\n{} rows were removed.'
           .format(dataset.shape[0], size - dataset.shape[0]))
     # Create the dataset that will be used to train the models
@@ -76,10 +77,8 @@ def setup_data(path):
 
 def encode_cat_data(data):
     cat_features = ['parentbreak', 'alcohol',
-                    'arthritis', 'cancer', 'diabetes', 'heartdisease',
-                    'oralster', 'smoke', 'respdisease', 'hbp',
-                    'ptunsteady', 'wasfractdue2fall', 'cholesterol',
-                    'ptfall', 'shoulder', 'wrist', 'bmdtest_10yr_caroc']
+                    'arthritis', 'diabetes',
+                    'oralster', 'smoke']
     dataset = data.copy()
 
     for feature in cat_features:
@@ -104,33 +103,33 @@ def plot_results(classification_model, x_tr, y_tr, x_te, y_te):
     current_dir = os.getcwd()
     dst_dir = current_dir + "/Output/PreTrainedModels/RFC"
     plot_types = ['classification_report', 'conf_mat', 'ROCAUC', 'class_pred_err', 'feature_importance']
-    classes = ['Moderate', 'High']
+    classes = ['High', 'Low', 'Moderate']
 
     try:
         # Create plots for the model
         for plot in plot_types:
             try:
                 if plot == 'classification_report':
-                    visualizer = ClassificationReport(classification_model, classes=classes, support=True,
+                    visualizer = ClassificationReport(classification_model, support=True, classes=classes,
                                                       is_fitted=True)
                     visualizer.fit(x_tr, y_tr)
                     visualizer.score(x_te, y_te)
                     visualizer.show(outpath=f"RFC_classification_report.png", clear_figure=True)
 
                 elif plot == 'conf_mat':
-                    visualizer = ConfusionMatrix(classification_model, classes=classes, is_fitted=True)
+                    visualizer = ConfusionMatrix(classification_model, is_fitted=True)
                     visualizer.fit(x_tr, y_tr)
                     visualizer.score(x_te, y_te)
                     visualizer.show(outpath=f"RFC_confusion_matrix.png", clear_figure=True)
 
                 elif plot == 'ROCAUC':
-                    visualizer = ROCAUC(classification_model, classes=classes, is_fitted=True)
+                    visualizer = ROCAUC(classification_model, is_fitted=True)
                     visualizer.fit(x_tr, y_tr)
                     visualizer.score(x_te, y_te)
                     visualizer.show(outpath=f"RFC_ROCAUC.png", clear_figure=True)
 
                 elif plot == 'class_pred_err':
-                    visualizer = ClassPredictionError(classification_model, classes=classes, is_fitted=True)
+                    visualizer = ClassPredictionError(classification_model, is_fitted=True)
                     visualizer.fit(x_tr, y_tr)
                     visualizer.score(x_te, y_te)
                     visualizer.show(outpath=f"RFC_Class_Prediction_Error.png", clear_figure=True)
@@ -215,7 +214,7 @@ if __name__ == "__main__":
         model_file = sys.argv[1]
         file_name = sys.argv[2]
 
-        # file_name = '../Clean_Data_Main.csv'
+        # file_name = '../FRAX_V3.csv'
         logging.info(f'Loading Data {file_name}\n')
 
         # Perform the analysis and generate the images
@@ -229,23 +228,27 @@ if __name__ == "__main__":
 
         main_data = encode_cat_data(main_data)
 
-        X, y = create_model_set(main_data, ['PatientAge', "PatientGender", 'bmi', 'alcohol_1.0',
-                                            'smoke_1.0', 'arthritis_1.0', 'diabetes_1.0'],
-                                'bmdtest_10yr_caroc_2.0')
+        X, y = create_model_set(main_data, ['PatientAge', "PatientGender", 'bmdtest_weight', 'bmdtest_height',
+                                 'parentbreak_1.0', 'alcohol_1.0', 'arthritis_1.0', 'diabetes_1.0',
+                                 'oralster_1.0', 'oralster_2.0', 'smoke_1.0'],
+                                 'Frax_BMD_RiskLevel')
+        counter = Counter(y)
+        print(counter)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=True, random_state=2)
-
+        counter = Counter(y_test)
+        print(counter)
         model = load_model(model_file)
 
         if model is not None:
 
             yhat = model.predict(X_test)
 
-            shap_sample = create_shap_sample(X_train, int((len(X_train) * 0.2)))
-
-            model_explainer = create_explainer(model, shap_sample)
-
-            plot_summary(model_explainer, shap_sample, ['PatientAge', "PatientGender", 'bmi', 'alcohol_1.0',
-                                                        'smoke_1.0', 'arthritis_1.0', 'diabetes_1.0'])
+            # shap_sample = create_shap_sample(X_train, int((len(X_train) * 0.2)))
+            #
+            # model_explainer = create_explainer(model, shap_sample)
+            #
+            # plot_summary(model_explainer, shap_sample, ['PatientAge', "PatientGender", 'bmi', 'alcohol_1.0',
+            #                                             'smoke_1.0', 'arthritis_1.0', 'diabetes_1.0'])
 
             plot_results(model, X_train, y_train, X_test, y_test)
 
