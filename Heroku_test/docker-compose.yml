@@ -1,0 +1,6 @@
+version: '3.8'
+services:
+  heroku_test:
+    build: .
+    ports:
+      - 8000:8000
