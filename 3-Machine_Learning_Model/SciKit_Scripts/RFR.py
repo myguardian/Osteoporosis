@@ -47,7 +47,7 @@ def setup_data(path):
     dataset.reset_index(drop=True, inplace=True)
 
     # Drop the PatientID column as it is no longer needed
-    dataset.drop(['PatientId'], axis=1, inplace=True)
+    # dataset.drop(['PatientId'], axis=1, inplace=True)
 
     dataset.drop(dataset.index[dataset['ankle'] == 1], inplace=True)
 
@@ -89,9 +89,8 @@ def poly_data(x_train):
     return x_train
 
 
-def scale_data(x_train):
+def scale_data(x_train, scaler):
     cols_to_scale = ['PatientAge', 'bmi']
-    scaler = StandardScaler()
     scaler.fit(x_train[cols_to_scale])
     x_train[cols_to_scale] = scaler.transform(x_train[cols_to_scale])
 
@@ -319,8 +318,8 @@ if __name__ == "__main__":
         main_data = encode_cat_data(main_data)
 
         X, y = create_model_set(main_data,
-                                ['PatientAge', 'PatientGender', 'bmi', 'pt_response_clavicle_1.0',
-                                 'pt_response_shoulder_1.0',
+                                ['PatientId', 'PatientAge', 'PatientGender', 'bmi', 'bmdtest_height', 'bmdtest_weight',
+                                 'pt_response_clavicle_1.0', 'pt_response_shoulder_1.0',
                                  'pt_response_elbow_1.0', 'pt_response_femur_1.0', 'pt_response_wrist_1.0',
                                  'pt_response_tibfib_1.0'], 'bmdtest_tscore_fn')
         logging.info('Explanatory Features and Target columns have been created')
@@ -333,13 +332,19 @@ if __name__ == "__main__":
         logging.info('Polynomial Features have been added to the dataset')
 
         # Scale the Data
-        X = scale_data(X)
+        scaler = StandardScaler()
+        X = scale_data(X, scaler)
         logging.info('Data has been scaled')
 
         # rstate = np_random.default_rng(42)
 
         # Split the data into training and testing data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=786, shuffle=True)
+
+        temp = X_test
+
+        X_train = X_train.drop(['PatientId', 'bmdtest_weight', 'bmdtest_height'], axis=1)
+        X_test = X_test.drop(['PatientId', 'bmdtest_weight', 'bmdtest_height'], axis=1)
 
         # Stopped using HyperOpt for this as it would not output consistent results
         # best = fmin(fn=objective_function_regression, space=rfr, algo=tpe.suggest, max_evals=500, rstate=rstate)
@@ -355,7 +360,7 @@ if __name__ == "__main__":
         # Random Search
         regressor = RandomForestRegressor(**rnd_search.best_params_, random_state=384)
 
-        X100 = create_shap_sample(X, 100)
+        X100 = create_shap_sample(X_test, 100)
 
         model_explainer = create_explainer(regressor, X100)
 
@@ -375,6 +380,12 @@ if __name__ == "__main__":
                                                'pt_response_wrist_1.0',
                                                'pt_response_tibfib_1.0', 'Age*Gender', 'Age*bmi', 'Gender*bmi'])
         plot_results(regressor, X_train, y_train, X_test, y_test, 3)
+        temp['predicted_t_score'] = yhat
+        temp[['PatientAge', 'bmi']] = scaler.inverse_transform(temp[['PatientAge', 'bmi']])
+        temp = temp.drop(['pt_response_clavicle_1.0', 'pt_response_shoulder_1.0',
+                   'pt_response_elbow_1.0', 'pt_response_femur_1.0', 'pt_response_wrist_1.0',
+                   'pt_response_tibfib_1.0'], axis=1)
+        temp.to_csv('RFR_predictions.csv')
 
         print('All Operations have been completed. Closing Program.')
 

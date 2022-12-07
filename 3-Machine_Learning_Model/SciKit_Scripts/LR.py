@@ -45,7 +45,7 @@ def setup_data(path):
     dataset.reset_index(drop=True, inplace=True)
 
     # Drop the PatientID column as it is no longer needed
-    dataset.drop(['PatientId'], axis=1, inplace=True)
+    # dataset.drop(['PatientId'], axis=1, inplace=True)
 
     dataset.drop(dataset.index[dataset['ankle'] == 1], inplace=True)
 
@@ -83,9 +83,8 @@ def encode_cat_data(data):
     return dataset
 
 
-def scale_data(x_train):
-    cols_to_scale = ['PatientAge', 'bmi', 'Age*Gender', 'Age*bmi', 'Gender*bmi']
-    scaler = StandardScaler()
+def scale_data(x_train, scaler):
+    cols_to_scale = ['PatientAge', 'bmi']
     scaler.fit(x_train[cols_to_scale].copy())
     x_train[cols_to_scale] = scaler.transform(x_train[cols_to_scale])
 
@@ -298,7 +297,7 @@ if __name__ == "__main__":
         main_data = encode_cat_data(main_data)
 
         X, y = create_model_set(main_data,
-                                ['PatientAge', 'PatientGender', 'bmi', 'pt_response_clavicle_1.0',
+                                ['PatientId', 'PatientAge', 'PatientGender', 'bmi', 'bmdtest_height', 'bmdtest_weight', 'pt_response_clavicle_1.0',
                                  'pt_response_shoulder_1.0',
                                  'pt_response_elbow_1.0', 'pt_response_femur_1.0', 'pt_response_wrist_1.0',
                                  'pt_response_tibfib_1.0'], 'bmdtest_tscore_fn')
@@ -313,12 +312,18 @@ if __name__ == "__main__":
         logging.info('Polynomial Features have been added to the dataset')
 
         # Scale the Data
-        X = scale_data(X)
+        scaler = StandardScaler()
+        X = scale_data(X, scaler)
         logging.info('Data has been scaled')
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=786, shuffle=True)
 
-        X100 = create_shap_sample(X, 100)
+        temp = X_test
+
+        X_train = X_train.drop(['PatientId', 'bmdtest_weight', 'bmdtest_height'], axis=1)
+        X_test = X_test.drop(['PatientId', 'bmdtest_weight', 'bmdtest_height'], axis=1)
+
+        X100 = create_shap_sample(X_test, 100)
 
         model_explainer = create_explainer(lr, X100)
 
@@ -329,12 +334,19 @@ if __name__ == "__main__":
 
         y_pred = lr.predict(X_test)
         evaluate_model(lr, X_train, X_test, y_test, y_pred)
-        plot_summary(model_explainer, X_test, ['PatientAge', 'PatientGender', 'bmi', 'pt_response_clavicle_1.0',
+        plot_summary(model_explainer, X_test, ['PatientAge', 'PatientGender', 'bmi', 'bmdtest_height', 'bmdtest_weight', 'pt_response_clavicle_1.0',
                                                'pt_response_shoulder_1.0',
                                                'pt_response_elbow_1.0', 'pt_response_femur_1.0',
                                                'pt_response_wrist_1.0',
                                                'pt_response_tibfib_1.0', 'Age*Gender', 'Age*bmi', 'Gender*bmi'])
         plot_results(lr, X_train, y_train, X_test, y_test, 1)
+        temp['predicted_t_score'] = y_pred
+        temp_scaled = scaler.inverse_transform(temp[['PatientAge', 'bmi']])
+        temp[['PatientAge', 'bmi']] = temp_scaled
+        temp = temp.drop(['pt_response_clavicle_1.0', 'pt_response_shoulder_1.0',
+                   'pt_response_elbow_1.0', 'pt_response_femur_1.0', 'pt_response_wrist_1.0',
+                   'pt_response_tibfib_1.0'], axis=1)
+        temp.to_csv('LR_predictions.csv')
         print('All Operations have been completed. Closing Program.')
 
     else:

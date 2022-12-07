@@ -50,7 +50,7 @@ def setup_data(path):
     dataset.reset_index(drop=True, inplace=True)
 
     # Drop the PatientID column as it is no longer needed
-    dataset.drop(['PatientId'], axis=1, inplace=True)
+    # dataset.drop(['PatientId'], axis=1, inplace=True)
 
     dataset.drop(dataset.index[dataset['ankle'] == 1], inplace=True)
 
@@ -95,9 +95,8 @@ def encode_cat_data(data):
     return dataset
 
 
-def scale_data(x_train):
-    cols_to_scale = ['PatientAge', 'bmi', 'Age*Gender', 'Age*bmi', 'Gender*bmi']
-    scaler = StandardScaler()
+def scale_data(x_train, scaler):
+    cols_to_scale = ['PatientAge', 'bmi']
     scaler.fit(x_train[cols_to_scale].copy())
     x_train[cols_to_scale] = scaler.transform(x_train[cols_to_scale])
 
@@ -324,7 +323,7 @@ if __name__ == "__main__":
         main_data = encode_cat_data(main_data)
 
         X, y = create_model_set(main_data,
-                                ['PatientAge', 'PatientGender', 'bmi', 'pt_response_clavicle_1.0',
+                                ['PatientId', 'PatientAge', 'PatientGender', 'bmi', 'bmdtest_height', 'bmdtest_weight', 'pt_response_clavicle_1.0',
                                  'pt_response_shoulder_1.0',
                                  'pt_response_elbow_1.0', 'pt_response_femur_1.0', 'pt_response_wrist_1.0',
                                  'pt_response_tibfib_1.0'], 'bmdtest_tscore_fn')
@@ -338,16 +337,22 @@ if __name__ == "__main__":
         logging.info('Polynomial Features have been added to the dataset')
 
         # Scale the Data
-        X = scale_data(X)
+        scaler = StandardScaler()
+        X = scale_data(X, scaler)
         logging.info('Data has been scaled')
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=786, shuffle=True)
+
+        temp = X_test
+
+        X_train = X_train.drop(['PatientId', 'bmdtest_weight', 'bmdtest_height'], axis=1)
+        X_test = X_test.drop(['PatientId', 'bmdtest_weight', 'bmdtest_height'], axis=1)
 
         rstate = np_random.default_rng(42)
 
         best = fmin(fn=objective_function_regression, space=rr, algo=tpe.suggest, max_evals=500, rstate=rstate)
         regressor = Ridge(alpha=best['alpha'], solver='svd', max_iter=best['max_iter'])
 
-        X100 = create_shap_sample(X, 100)
+        X100 = create_shap_sample(X_test, 100)
 
         model_explainer = create_explainer(regressor, X100)
 
@@ -357,7 +362,7 @@ if __name__ == "__main__":
         plot_waterfall(X_train, model_explainer, 2)
 
         # predict from test set
-        yhat = regressor.predict(X_test);
+        yhat = regressor.predict(X_test)
         print("{} {}".format('The RMSE on the test set is :', mean_squared_error(y_test, yhat, squared=False)))
 
         # perform predictions on the unseen data
@@ -369,6 +374,13 @@ if __name__ == "__main__":
                                                'pt_response_wrist_1.0',
                                                'pt_response_tibfib_1.0', 'Age*Gender', 'Age*bmi', 'Gender*bmi'])
         plot_results(regressor, X_train, y_train, X_test, y_test, 2)
+
+        temp['predicted_t_score'] = yhat
+        temp[['PatientAge', 'bmi']] = scaler.inverse_transform(temp[['PatientAge', 'bmi']])
+        temp = temp.drop(['pt_response_clavicle_1.0', 'pt_response_shoulder_1.0',
+                   'pt_response_elbow_1.0', 'pt_response_femur_1.0', 'pt_response_wrist_1.0',
+                   'pt_response_tibfib_1.0'], axis=1)
+        temp.to_csv('RR_predictions.csv')
 
         logging.info('All Operations have been completed. Closing Program.')
 
