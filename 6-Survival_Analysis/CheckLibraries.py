@@ -7,10 +7,21 @@ try:
 except ImportError:
     subprocess.check_call(['pip', 'install', 'pipreqs'])
 
-file_list = input("Enter the file names (space-separated) to scan for dependencies: ")
-files_to_scan = [filename.strip() for filename in file_list.split()]
+# Define the command to execute
+command = ['python', '-m', 'pipreqs.pipreqs', '--force']
 
-subprocess.check_call(['pipreqs', '--force', '--print'] + files_to_scan)
+# Execute the command
+process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+# Wait for the process to finish and get the output
+stdout, stderr = process.communicate()
+
+# Check the return code
+if process.returncode == 0:
+    print("pipreqs command executed successfully.")
+else:
+    print("An error occurred while executing pipreqs command.")
+    print("Error message:", stderr.decode('utf-8'))
 
 with open('requirements.txt', 'r') as f:
     requirements = [line.strip() for line in f.readlines() if line.strip()]
