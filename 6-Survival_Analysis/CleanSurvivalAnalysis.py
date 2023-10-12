@@ -32,19 +32,7 @@ structured_array = y.to_records(index=False)
 
 swapped = pd.DataFrame({
     "event": y.event,
-    "time": y.time.apply(lambda x: x.days)
-})
-(swapped.event).value_counts()
-swapped.event = swapped.event.astype(bool)
-structured_array = np.rec.array(swapped.to_records(index=False))
-
-mergedBeforeEncoding = pd.concat([X[selectedColumns],swapped],axis=1)
-
-cat_features = ['parentbreak', 'alcohol',
-                'oralster', 'smoke','ptunsteady','marital','whereliv','ptfall','obreak_frac_count','specialistReferral','fpp_info','obreak_spine','obreak_pelvis'
-                # These features were determined to apply minimal impact even
-                # 'respdisease', 'hbp','heartdisease',
-                # 'ptunsteady', 'wasfractdue2fall', 'cholesterol',
+    "time": y.timtunsteady', 'wasfractdue2fall', 'cholesterol',
                 # 'ptfall', 'shoulder', 'wrist', 'bmdtest_10yr_caroc'
                 ]
 
@@ -59,4 +47,16 @@ mergedBeforeEncoding = mergedBeforeEncoding.loc[mergedBeforeEncoding['time'] > i
 X = mergedBeforeEncoding.drop(['event','time'],axis=1)
 y = mergedBeforeEncoding[['event','time']]
 
-y = np.rec.array(y.to_records(index=False))
+y = np.rec.array(y.to_records(index=False))e.apply(lambda x: x.days)
+})
+(swapped.event).value_counts()
+swapped.event = swapped.event.astype(bool)
+structured_array = np.rec.array(swapped.to_records(index=False))
+
+mergedBeforeEncoding = pd.concat([X[selectedColumns],swapped],axis=1)
+
+cat_features = ['parentbreak', 'alcohol',
+                'oralster', 'smoke','ptunsteady','marital','whereliv','ptfall','obreak_frac_count','specialistReferral','fpp_info','obreak_spine','obreak_pelvis'
+                # These features were determined to apply minimal impact even
+                # 'respdisease', 'hbp','heartdisease',
+                # 'p
