@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Run Script with CSV",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "args": ["${workspaceFolder}/IFR_Extract_with_selected_columns_15-5-23.csv"],
+            "console": "integratedTerminal"
+        }
+    ]
+}

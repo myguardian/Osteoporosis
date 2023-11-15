@@ -6,13 +6,13 @@ from sklearn.model_selection import train_test_split
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sksurv.ensemble import GradientBoostingSurvivalAnalysis, RandomSurvivalForest, ExtraSurvivalTrees
 from lifelines.utils import concordance_index
-from multiprocess import Pool, cpu_count
+# from multiprocess import Pool, cpu_count
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 
 
-# Data cleaning logic from snippet 2
+
 def clean_data(filename):
     data = pd.read_csv(filename)
     obreak_date = pd.to_datetime(data.obreak_date)
