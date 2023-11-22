@@ -51,22 +51,13 @@ def clean_csv_by_column(csv_path, columns):
     # /home/inovex_data_admin/extracts/V4IFRFullExtractLIVE2023-09-18_2.csv
 
     # Calculate the time difference between two date columns
-    obreak_date = pd.to_datetime(df['obreak_date'])
-    date_of_birth = pd.to_datetime(df['datebone'])
-    df['obreak_date'] = abs(date_of_birth - obreak_date)
+    first_break = pd.to_datetime(df['obreak_date'])
+    second_break = pd.to_datetime(df['datebone'])
+    # Should we make sure that this value is not megative, not just use abs?
+    df['obreak_date'] = abs(second_break - first_break)
 
-    # Select and clean the desired columns
-    # selectedColumns = [
-    #     'PatientAge', 'PatientGender', 'parentbreak', 'alcohol',
-    #     'arthritis', 'diabetes', 'obreak_date',
-    #     'oralster', 'smoke', 'obreak', 'ptunsteady',
-    #     'obreak_hip', 'marital', 'whereliv', 'ptfall',
-    #     'obreak_frac_count', 'specialistReferral',
-    #     'fpp_info', 'obreak_spine', 'obreak_pelvis'
-    # ]
 
     # Create an event indicator column (1 if the event occurred, 0 if censored)
-    # df = df[selectedColumns]
     df = df[columns]
 
     # Assuming 'timedelta_column' is the name of the column containing timedeltas
@@ -84,19 +75,9 @@ def clean_csv_by_column(csv_path, columns):
             df[col] = df[col].fillna(-1)
 
     # Save the cleaned data to a new CSV file
-    df.to_csv('new_csv.csv')
+    # df.to_csv('new_csv.csv')
 
     # Display the first few rows of the cleaned DataFrame
-    df.info()
+    # df.info()
+    return df
 
-
-selectedColumns = [
-    'PatientAge', 'PatientGender', 'parentbreak', 'alcohol',
-    'arthritis', 'diabetes', 'obreak_date',
-    'oralster', 'smoke', 'obreak', 'ptunsteady',
-    'obreak_hip', 'marital', 'whereliv', 'ptfall',
-    'obreak_frac_count', 'specialistReferral',
-    'fpp_info', 'obreak_spine', 'obreak_pelvis'
-]
-
-clean_csv_by_column('IFR_Extract_with_selected_columns_15-5-23.csv', selectedColumns)

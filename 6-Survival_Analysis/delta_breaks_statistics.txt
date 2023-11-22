@@ -1,0 +1,12 @@
+Mean: 2901.32
+Median: 1872.5
+Mode: 0
+Number of zero values: 8
+Standard Deviation: 3042.757977186926
+Variance: 9258376.107734675
+Range: 17689
+Interquartile Range (IQR): 3105.75
+Skewness: 1.8699068417150044
+Kurtosis: 4.136467997248496
+Minimum value: 0
+Maximum value: 17689 (48.46 years)
