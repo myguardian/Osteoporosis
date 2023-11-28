@@ -203,9 +203,9 @@ def clean_csv_by_column(csv_path, columns):
     # /home/inovex_data_admin/extracts/V4IFRFullExtractLIVE2023-09-18_2.csv
 
     # Calculate the time difference between two date columns
-    first_break = pd.to_datetime(df['obreak_date'])
-    second_break = pd.to_datetime(df['datebone'])
-    # Should we make sure that this value is not megative, not just use abs?
+    first_break = pd.to_datetime(df['datebone'])
+    second_break = pd.to_datetime(df['obreak_date'])
+    # Should we make sure that this value is not negative, not just use abs?
     df['obreak_date'] = abs(second_break - first_break)
 
 

@@ -32,7 +32,7 @@ def main():
     df_noZero = df[df['obreak_date'] != 0]
     calculate_and_save_stats(df_noZero['obreak_date'], 'delta_breaks_statistics.txt')
 
-    filtered_df = df[(df['obreak_date'] > 0) & (df['obreak_date'] <= 730)]
+    filtered_df = df[(df['obreak_date'] >= 0) & (df['obreak_date'] <= 730)]
     calculate_and_save_stats(filtered_df['obreak_date'], 'delta_breaks_statistics_2years_NoZero.txt')
 
     # Plotting Delta Break Distribution
