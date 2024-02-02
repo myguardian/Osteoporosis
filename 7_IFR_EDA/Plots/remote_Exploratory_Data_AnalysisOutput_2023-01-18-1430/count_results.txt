@@ -1,0 +1,3 @@
+Number of 1's in knownwt: 25205
+Number of 2's in knownwt: 2293
+Total number of rows in the DataFrame: 32677

@@ -1,0 +1,11 @@
+                 1.0
+obreaK_wrist     356
+obreak_elbow      46
+obreak_shoulder  152
+obreak_spine      94
+obreak_pelvis     56
+obreak_hip       262
+obreak_femur      43
+obreak_tibfib     36
+obreak_clavicle   20
+obreak_obone     142
